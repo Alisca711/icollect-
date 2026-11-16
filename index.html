@@ -85,7 +85,7 @@
       <button onclick="setCategory('預訂中')" data-cat="預訂中" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">預訂中</button>
     </div>
 
-    <!-- 二級系列過濾膠囊 (新加入) -->
+    <!-- 二級系列過濾膠囊 -->
     <div class="flex gap-1.5 overflow-x-auto hide-scrollbar pb-3">
       <button onclick="setSeriesFilter('ALL')" data-series="ALL" class="series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-blue-600 text-white whitespace-nowrap">全系列</button>
       <button onclick="setSeriesFilter('Premium')" data-series="Premium" class="series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-white text-gray-500 border border-gray-200 whitespace-nowrap">Tomica Premium</button>
@@ -201,21 +201,27 @@
           </div>
         </div>
 
-        <!-- 價錢快速點選 -->
+        <!-- 價錢快速點選（福利快捷鍵已修復加入） -->
         <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">實際入手價 (HKD)</label>
             <input id="f-cost" type="number" step="0.1" placeholder="0" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-            <div class="flex gap-1 mt-1">
-              <button type="button" onclick="document.getElementById('f-cost').value='0'" class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-600">$0</button>
-              <button type="button" onclick="document.getElementById('f-cost').value='38'" class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-600">$38</button>
-              <button type="button" onclick="document.getElementById('f-cost').value='350'" class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-600">$350</button>
-              <button type="button" onclick="document.getElementById('f-cost').value='550'" class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-600">$550</button>
+            <div class="flex gap-1 mt-1.5">
+              <button type="button" onclick="document.getElementById('f-cost').value='0'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$0</button>
+              <button type="button" onclick="document.getElementById('f-cost').value='38'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$38</button>
+              <button type="button" onclick="document.getElementById('f-cost').value='350'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$350</button>
+              <button type="button" onclick="document.getElementById('f-cost').value='550'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$550</button>
             </div>
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">二手估值 (HKD)</label>
             <input id="f-val" type="number" step="0.1" placeholder="0" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+            <div class="flex gap-1 mt-1.5">
+              <button type="button" onclick="document.getElementById('f-val').value='0'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$0</button>
+              <button type="button" onclick="document.getElementById('f-val').value='363.44'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$363</button>
+              <button type="button" onclick="document.getElementById('f-val').value='550'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$550</button>
+              <button type="button" onclick="document.getElementById('f-val').value='1100'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$1100</button>
+            </div>
           </div>
         </div>
 
