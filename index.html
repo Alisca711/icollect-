@@ -169,7 +169,7 @@
             <button type="button" onclick="stopBarcodeScan()" class="absolute top-3 right-3 z-10 bg-white/90 text-black px-3 py-1 rounded-full text-xs font-bold shadow">關閉相機</button>
           </div>
 
-          <!-- 掃描後出現嘅一鍵 Google 搜尋實體按鈕 (100% 唔會被 iOS Safari 阻擋) -->
+          <!-- 掃描後出現嘅一鍵 Google 搜尋實體按鈕 -->
           <div id="barcode-helper" class="hidden mt-2 flex items-center justify-between bg-blue-50 border border-blue-200 px-3 py-2 rounded-xl">
             <span id="barcode-status-text" class="text-xs text-blue-800 font-medium">已讀取條碼</span>
             <a id="barcode-google-link" href="#" target="_blank" rel="noopener noreferrer" class="text-xs bg-blue-600 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm">
@@ -279,7 +279,6 @@
   </div>
 
   <script>
-    // 預載自 Google Sheets 的初始資料
     const DEFAULT_ITEMS = [
       { id: '1', category: '玩具模型', name: 'S.H.Figuarts MASKED RIDER FAIZ -20 假面騎士踢 Ver.-', series: 'TAMASHII NATIONS / S.H.Figuarts', region: '日版', box: '一般', location: '', val: 363, cost: 350, msrp: '¥5,500 (含稅)', releaseDate: '2018年10月20日', saleType: '一般', url: 'https://tamashiiweb.com/item/12687/?wovn=zh-CHT&sa=ASIA', status: '已入手', channel: '秋葉原模型店', notes: '附特製底座', image: '' },
       { id: '2', category: '玩具模型', name: 'S.H.Figuarts Kamen Rider RYUGA', series: 'TAMASHII NATIONS / S.H.Figuarts', region: '日版', box: '良好', location: '', val: 1100, cost: 961, msrp: '¥4,400 (含稅)', releaseDate: '2013年3月1日', saleType: '魂限', url: 'https://tamashiiweb.com/item/10182/?wovn=en', status: '已入手', channel: 'Mercari', notes: '', image: '' },
@@ -561,7 +560,6 @@
       renderItems();
     }
 
-    // 擺放位置渲染
     function renderLocations() {
       const container = document.getElementById('locations-container');
       container.innerHTML = locations.map((loc, idx) => {
@@ -654,7 +652,7 @@
       reader.readAsText(file);
     }
 
-    // 掃描 Barcode 與自動透過日本 JAN 庫查詢 + 顯示防封鎖實體按鈕
+    // 掃描 Barcode 與自動查詢日本 JAN 庫並自動填入表單
     function startBarcodeScan() {
       const container = document.getElementById('scanner-container');
       const helper = document.getElementById('barcode-helper');
@@ -677,15 +675,16 @@
           const statusText = document.getElementById('barcode-status-text');
           const googleLink = document.getElementById('barcode-google-link');
 
-          // 顯示 100% 唔會被 iOS 攔截嘅一鍵 Google 搜尋實體按鈕
           helper.classList.remove('hidden');
-          statusText.textContent = `條碼: ${decodedText} (查詢中...)`;
+          statusText.textContent = `條碼: ${decodedText} (資料庫查詢中...)`;
           googleLink.href = `https://www.google.com/search?q=${encodeURIComponent(decodedText)}`;
 
-          // 寫入備註並自動判斷品牌
+          // 自動記錄 JAN 條碼於備註
           if (!notesInput.value.includes(decodedText)) {
             notesInput.value = `JAN: ${decodedText} ` + (notesInput.value || '');
           }
+
+          // 智慧前綴預判分類與系列
           if (decodedText.startsWith('4904810')) {
             catSelect.value = 'Tomica車仔';
             seriesInput.value = 'Takara Tomy / Tomica';
@@ -696,7 +695,7 @@
 
           nameInput.value = decodedText;
 
-          // 嘗試跨域抓取日本 jancode.xyz 資料庫
+          // 嘗試從日本 jancode.xyz 自動抓取商品名稱並自動填入表格
           try {
             const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.jancode.xyz/' + decodedText + '/')}`;
             const res = await fetch(proxyUrl);
@@ -707,15 +706,15 @@
               if (titleEl && titleEl.textContent) {
                 let cleanTitle = titleEl.textContent.replace(/JANコード.*|【.*】/g, '').trim();
                 if (cleanTitle && !cleanTitle.includes('404') && !cleanTitle.includes('見つかりません')) {
-                  nameInput.value = cleanTitle;
-                  statusText.textContent = `✅ 已自動填入日本資料庫名稱`;
+                  nameInput.value = cleanTitle; // 自動填入欄位
+                  statusText.textContent = `✅ 已自動匹配並填入商品名稱！`;
                   return;
                 }
               }
             }
           } catch (e) {}
 
-          statusText.textContent = `未自動匹配，請撳右邊搜尋：`;
+          statusText.textContent = `⚠️ 未能在線匹配名稱，請直接參考右側 Google 搜尋：`;
         },
         () => {}
       ).catch(() => {
