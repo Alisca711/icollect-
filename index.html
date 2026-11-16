@@ -308,15 +308,6 @@
       { code: 'D-1', desc: '備用箱', type: '紙箱', current: 0, max: 50, note: '暫時存放' }
     ];
 
-    // 內置條碼對照表（已成功加入你剛才測量嘅 4573102555021）
-    const BARCODE_DATABASE = {
-      "4573102555021": { 
-        name: "S.H.Figuarts (SHINKOCCHOU SEIHOU) MASKED RIDER KUUGA GROWING FORM 55th Anniversary Ver.", 
-        series: "S.H.Figuarts 真骨彫製法", 
-        category: "玩具模型" 
-      }
-    };
-
     let items = JSON.parse(localStorage.getItem('icollect_items_v3')) || DEFAULT_ITEMS;
     let locations = JSON.parse(localStorage.getItem('icollect_locs_v3')) || DEFAULT_LOCATIONS;
     let currentCategory = 'ALL';
@@ -661,7 +652,7 @@
       reader.readAsText(file);
     }
 
-    // 掃描 Barcode 與自動對照內置庫填表
+    // 掃描 Barcode 結合全球開源商品 API 進行雲端一站式自動填表
     function startBarcodeScan() {
       const container = document.getElementById('scanner-container');
       const helper = document.getElementById('barcode-helper');
@@ -675,7 +666,7 @@
       html5QrCode.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 100 } },
-        (decodedText) => {
+        async (decodedText) => {
           stopBarcodeScan();
           const nameInput = document.getElementById('f-name');
           const seriesInput = document.getElementById('f-series');
@@ -685,24 +676,15 @@
           const googleLink = document.getElementById('barcode-google-link');
 
           helper.classList.remove('hidden');
+          statusText.textContent = `條碼 ${decodedText}：正在雲端數據庫檢索...`;
           googleLink.href = `https://www.google.com/search?q=${encodeURIComponent(decodedText)}`;
 
-          // 自動記錄 JAN 條碼於備註
+          // 記錄條碼至備註
           if (!notesInput.value.includes(decodedText)) {
             notesInput.value = `JAN: ${decodedText} ` + (notesInput.value || '');
           }
 
-          // 1. 優先檢查內置條碼庫是否直接匹配
-          if (BARCODE_DATABASE[decodedText]) {
-            const matched = BARCODE_DATABASE[decodedText];
-            nameInput.value = matched.name;
-            seriesInput.value = matched.series;
-            catSelect.value = matched.category;
-            statusText.textContent = `✅ 成功自動填入對應藏品名稱！`;
-            return;
-          }
-
-          // 2. 智慧前綴預判分類與系列
+          // 智慧前綴預判
           if (decodedText.startsWith('4904810')) {
             catSelect.value = 'Tomica車仔';
             seriesInput.value = 'Takara Tomy / Tomica';
@@ -712,7 +694,23 @@
           }
 
           nameInput.value = decodedText;
-          statusText.textContent = `條碼: ${decodedText} (未在速查庫，可一鍵 Google 搜尋)`;
+
+          // 呼叫免費全球商品雲端 API (UPCitemdb)
+          try {
+            const apiRes = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${decodedText}`);
+            const apiData = await apiRes.json();
+            if (apiData && apiData.items && apiData.items.length > 0) {
+              const product = apiData.items[0];
+              if (product.title) {
+                nameInput.value = product.title;
+                if (product.brand) seriesInput.value = product.brand;
+                statusText.textContent = `✅ 成功透過雲端自動填入商品資料！`;
+                return;
+              }
+            }
+          } catch (e) {}
+
+          statusText.textContent = `⚠️ 雲端庫無紀錄，已代入條碼並可一鍵 Google。`;
         },
         () => {}
       ).catch(() => {
