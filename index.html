@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="我的藏品庫" />
-  <title>我的藏品庫 | iCollect 個人版</title>
+  <title>我的藏品庫 | iCollect 極速版</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
@@ -19,6 +19,7 @@
     }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .chip-active { background-color: #2563eb !important; color: white !important; border-color: #2563eb !important; }
   </style>
 </head>
 <body class="text-gray-900">
@@ -28,7 +29,7 @@
     <div class="flex items-center justify-between mb-3">
       <div>
         <h1 class="text-xl font-bold tracking-tight text-gray-900">我的藏品庫</h1>
-        <p class="text-xs text-gray-500">Bandai 模型 & Tomica 車仔管理</p>
+        <p class="text-xs text-gray-500">模型、車仔、Re-ment & 幪面超人專用</p>
       </div>
       <div class="flex gap-2">
         <button onclick="openBackupModal()" class="p-2 rounded-full bg-gray-100 text-gray-700 active:bg-gray-200" title="備份與匯出">
@@ -78,8 +79,10 @@
     <!-- 分類膠囊篩選 -->
     <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-3">
       <button onclick="setCategory('ALL')" data-cat="ALL" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-gray-900 text-white whitespace-nowrap">全部藏品</button>
-      <button onclick="setCategory('玩具模型')" data-cat="玩具模型" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">Bandai / 模型玩具</button>
-      <button onclick="setCategory('Tomica車仔')" data-cat="Tomica車仔" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">Tomica 車仔</button>
+      <button onclick="setCategory('玩具模型')" data-cat="玩具模型" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">玩具模型</button>
+      <button onclick="setCategory('Tomica車仔')" data-cat="Tomica車仔" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">Tomica車仔</button>
+      <button onclick="setCategory('Re-ment')" data-cat="Re-ment" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">Re-ment</button>
+      <button onclick="setCategory('幪面超人')" data-cat="幪面超人" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">幪面超人</button>
       <button onclick="setCategory('預訂中')" data-cat="預訂中" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">預訂中</button>
     </div>
 
@@ -115,97 +118,96 @@
     </div>
   </div>
 
-  <!-- 新增 / 編輯藏品 Modal -->
+  <!-- 新增 / 編輯藏品 Modal (極速一鍵點選版本) -->
   <div id="form-modal" class="fixed inset-0 z-50 bg-black/50 hidden flex items-end sm:items-center justify-center">
     <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-2xl max-h-[92vh] overflow-y-auto p-5">
-      <div class="flex justify-between items-center mb-4">
-        <h3 id="form-title" class="text-lg font-bold">新增藏品</h3>
+      <div class="flex justify-between items-center mb-3">
+        <h3 id="form-title" class="text-base font-bold">新增藏品</h3>
         <button onclick="closeFormModal()" class="p-1.5 bg-gray-100 rounded-full text-gray-500">✕</button>
       </div>
-      <form id="item-form" onsubmit="saveItem(event)" class="space-y-3 text-sm">
+
+      <form id="item-form" onsubmit="saveItem(event, false)" class="space-y-3 text-sm">
         <input type="hidden" id="f-id" />
 
         <!-- 相片上傳 -->
-        <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-dashed border-gray-300">
-          <img id="f-img-preview" src="" class="w-16 h-16 rounded-lg object-cover bg-gray-200 hidden" />
+        <div class="flex items-center gap-3 bg-gray-50 p-2.5 rounded-xl border border-dashed border-gray-300">
+          <img id="f-img-preview" src="" class="w-14 h-14 rounded-lg object-cover bg-gray-200 hidden" />
           <div class="flex-1">
-            <label class="block font-semibold text-gray-700 mb-1">藏品相片（影相 / 相簿）</label>
-            <input type="file" accept="image/*" onchange="handleImageUpload(event)" class="text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700" />
+            <label class="block font-semibold text-gray-700 text-xs mb-1">藏品相片</label>
+            <input type="file" accept="image/*" onchange="handleImageUpload(event)" class="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700" />
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2.5">
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">大分類 *</label>
-            <select id="f-category" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl">
-              <option value="玩具模型">Bandai / 模型玩具</option>
-              <option value="Tomica車仔">Tomica 車仔</option>
-            </select>
+        <!-- 大分類快速點選膠囊 -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1.5">大分類 *</label>
+          <div class="grid grid-cols-4 gap-1.5" id="category-chips">
+            <button type="button" onclick="selectChip('category', '玩具模型', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">玩具模型</button>
+            <button type="button" onclick="selectChip('category', 'Tomica車仔', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">Tomica</button>
+            <button type="button" onclick="selectChip('category', 'Re-ment', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">Re-ment</button>
+            <button type="button" onclick="selectChip('category', '幪面超人', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">幪面超人</button>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">個人入手狀況</label>
-            <select id="f-status" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl">
-              <option value="已入手">已入手</option>
-              <option value="預訂中">預訂中</option>
-              <option value="想買">想買</option>
-              <option value="已出售">已出售</option>
-            </select>
-          </div>
+          <input type="hidden" id="f-category" value="玩具模型" />
         </div>
 
-        <!-- 編號 / 名稱 + 掃描 Barcode -->
+        <!-- 個人入手狀況 -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1.5">入手狀況</label>
+          <div class="grid grid-cols-4 gap-1.5" id="status-chips">
+            <button type="button" onclick="selectChip('status', '已入手', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">已入手</button>
+            <button type="button" onclick="selectChip('status', '預訂中', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">預訂中</button>
+            <button type="button" onclick="selectChip('status', '想買', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">想買</button>
+            <button type="button" onclick="selectChip('status', '已出售', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">已出售</button>
+          </div>
+          <input type="hidden" id="f-status" value="已入手" />
+        </div>
+
+        <!-- 名稱 / 掃描 Barcode -->
         <div>
           <div class="flex items-center justify-between mb-1">
             <label class="block text-xs font-semibold text-gray-600">編號 / 名稱 *</label>
-            <button type="button" onclick="startBarcodeScan()" class="text-xs text-blue-600 font-semibold bg-blue-50 px-2.5 py-1 rounded-lg flex items-center gap-1 active:bg-blue-100">
+            <button type="button" onclick="startBarcodeScan()" class="text-xs text-blue-600 font-semibold bg-blue-50 px-2.5 py-1 rounded-lg flex items-center gap-1">
               <span>📷</span> 掃描 Barcode
             </button>
           </div>
-          <input id="f-name" required type="text" placeholder="例如：S.H.Figuarts Kamen Rider Faiz" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+          <input id="f-name" required type="text" placeholder="例如：S.H.Figuarts 真骨彫 幪面超人..." class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
 
-          <!-- 掃描鏡頭預覽視窗 -->
           <div id="scanner-container" class="hidden mt-2 p-2 bg-black rounded-xl relative">
             <div id="reader" class="w-full overflow-hidden rounded-lg"></div>
             <button type="button" onclick="stopBarcodeScan()" class="absolute top-3 right-3 z-10 bg-white/90 text-black px-3 py-1 rounded-full text-xs font-bold shadow">關閉相機</button>
-          </div>
-
-          <!-- 掃描後出現嘅一鍵 Google 搜尋實體按鈕 -->
-          <div id="barcode-helper" class="hidden mt-2 flex items-center justify-between bg-blue-50 border border-blue-200 px-3 py-2 rounded-xl">
-            <span id="barcode-status-text" class="text-xs text-blue-800 font-medium">已讀取條碼</span>
-            <a id="barcode-google-link" href="#" target="_blank" rel="noopener noreferrer" class="text-xs bg-blue-600 text-white font-bold px-3 py-1.5 rounded-lg shadow-sm">
-              🔍 Google 搜全名 ↗
-            </a>
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">品牌 / 系列</label>
-            <input id="f-series" type="text" placeholder="例如：S.H.Figuarts / Premium" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+            <input id="f-series" type="text" placeholder="真骨彫製法 / Re-ment" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">購買地區 / 版本</label>
-            <select id="f-region" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl">
-              <option value="日版">日版</option>
-              <option value="港版">港版</option>
-              <option value="行版">行版</option>
-              <option value="海外版">海外版</option>
-            </select>
+            <label class="block text-xs font-semibold text-gray-600 mb-1.5">版本</label>
+            <div class="grid grid-cols-2 gap-1" id="region-chips">
+              <button type="button" onclick="selectChip('region', '日版', this)" class="py-2 px-1 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">日版</button>
+              <button type="button" onclick="selectChip('region', '港行版', this)" class="py-2 px-1 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">港行版</button>
+            </div>
+            <input type="hidden" id="f-region" value="日版" />
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
+        <!-- 價錢快速點選 -->
+        <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">實際入手價 (HKD)</label>
             <input id="f-cost" type="number" step="0.1" placeholder="0" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+            <div class="flex gap-1 mt-1">
+              <button type="button" onclick="document.getElementById('f-cost').value='0'" class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-600">$0</button>
+              <button type="button" onclick="document.getElementById('f-cost').value='38'" class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-600">$38</button>
+              <button type="button" onclick="document.getElementById('f-cost').value='350'" class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-600">$350</button>
+              <button type="button" onclick="document.getElementById('f-cost').value='550'" class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-600">$550</button>
+            </div>
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-600 mb-1">二手估值 (HKD)</label>
             <input id="f-val" type="number" step="0.1" placeholder="0" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">官方定價</label>
-            <input id="f-msrp" type="text" placeholder="¥5,500" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
           </div>
         </div>
 
@@ -215,7 +217,6 @@
             <select id="f-box" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl">
               <option value="良好">良好</option>
               <option value="全新未開">全新未開</option>
-              <option value="一般">一般</option>
               <option value="有損">有損</option>
               <option value="無盒">無盒</option>
             </select>
@@ -226,7 +227,7 @@
               <option value="一般">一般</option>
               <option value="魂限">魂限</option>
               <option value="Premium">Premium</option>
-              <option value="會場/限定">會場/限定</option>
+              <option value="會場限定">會場限定</option>
             </select>
           </div>
           <div>
@@ -241,22 +242,21 @@
             <input id="f-releaseDate" type="text" placeholder="2027年2月" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">購入管道 / 渠道</label>
-            <input id="f-channel" type="text" placeholder="P-Bandai / Mercari" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+            <label class="block text-xs font-semibold text-gray-600 mb-1">購入管道</label>
+            <input id="f-channel" type="text" placeholder="P-Bandai / 旋轉拍賣" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">參考網站 / 連結</label>
-          <input id="f-url" type="url" placeholder="https://..." class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+          <label class="block text-xs font-semibold text-gray-600 mb-1">備註 / 附屬配件</label>
+          <textarea id="f-notes" rows="1" placeholder="再販、特價標籤等..." class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl"></textarea>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">附屬配件 / 備註</label>
-          <textarea id="f-notes" rows="2" placeholder="再販、特價標籤、比例、條碼號碼等..." class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl"></textarea>
+        <!-- 雙按鈕：普通儲存 vs 連續新增 -->
+        <div class="flex gap-2 pt-1">
+          <button type="submit" class="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-md active:bg-blue-700 text-xs">儲存並關閉</button>
+          <button type="button" onclick="saveItem(event, true)" class="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-md active:bg-emerald-700 text-xs">💾 儲存並繼續新增下一件</button>
         </div>
-
-        <button type="submit" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl shadow-md active:bg-blue-700">儲存藏品資料</button>
       </form>
     </div>
   </div>
@@ -268,7 +268,7 @@
         <h3 class="text-base font-bold">資料備份與同步</h3>
         <button onclick="document.getElementById('backup-modal').classList.add('hidden')" class="text-gray-400">✕</button>
       </div>
-      <p class="text-xs text-gray-500">資料目前儲存在此 iPhone 本機。建議定期匯出備份或 CSV 同步回 Google Sheets。</p>
+      <p class="text-xs text-gray-500">資料目前儲存在此 iPhone 本機。建議定期匯出備份。</p>
       <button onclick="exportCSV()" class="w-full py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl">匯出 Excel / Google Sheets (CSV)</button>
       <button onclick="exportJSON()" class="w-full py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl">下載完整備份檔 (含相片 JSON)</button>
       <label class="block w-full py-2.5 bg-gray-100 text-gray-700 text-center text-sm font-semibold rounded-xl cursor-pointer">
@@ -280,44 +280,26 @@
 
   <script>
     const DEFAULT_ITEMS = [
-      { id: '1', category: '玩具模型', name: 'S.H.Figuarts MASKED RIDER FAIZ -20 假面騎士踢 Ver.-', series: 'TAMASHII NATIONS / S.H.Figuarts', region: '日版', box: '一般', location: '', val: 363, cost: 350, msrp: '¥5,500 (含稅)', releaseDate: '2018年10月20日', saleType: '一般', url: 'https://tamashiiweb.com/item/12687/?wovn=zh-CHT&sa=ASIA', status: '已入手', channel: '秋葉原模型店', notes: '附特製底座', image: '' },
-      { id: '2', category: '玩具模型', name: 'S.H.Figuarts Kamen Rider RYUGA', series: 'TAMASHII NATIONS / S.H.Figuarts', region: '日版', box: '良好', location: '', val: 1100, cost: 961, msrp: '¥4,400 (含稅)', releaseDate: '2013年3月1日', saleType: '魂限', url: 'https://tamashiiweb.com/item/10182/?wovn=en', status: '已入手', channel: 'Mercari', notes: '', image: '' },
-      { id: '3', category: '玩具模型', name: 'S.H.Figuarts (SHINKOCCHOU SEIHOU) MASKED RIDER DARK KABUTO RIDER FORM 20th Anniversary Ver.', series: 'S.H.Figuarts 真骨彫製法', region: '港版', box: '良好', location: '', val: 550, cost: 540, msrp: '', releaseDate: '2027年2月', saleType: '魂限', url: 'https://p-bandai.com/hk/item/A2878271001', status: '預訂中', channel: 'P-Bandai', notes: '再販', image: '' },
-      { id: '4', category: '玩具模型', name: 'S.H.Figuarts (SHINKOCCHOU SEIHOU) MASKED RIDER KUUGA GROWING FORM KAMEN RIDER 55th Anniversary Ver.', series: 'S.H.Figuarts 真骨彫製法', region: '港版', box: '良好', location: '', val: 400, cost: 480, msrp: '', releaseDate: '2027年3月', saleType: '魂限', url: 'https://p-bandai.com/hk/item/A2910970001', status: '預訂中', channel: 'P-Bandai', notes: '再販', image: '' },
-      { id: '5', category: 'Tomica車仔', name: 'Dream Tomica Ride On R06 蠟筆小新 × 不理不理左衛門車', series: 'Dream Tomica / Ride On', region: '日版', box: '良好', location: '', val: 0, cost: 0, msrp: '', releaseDate: '', saleType: '一般', url: '', status: '已入手', channel: '', notes: '蠟筆小新系列', image: '' },
-      { id: '6', category: 'Tomica車仔', name: '日産 NISSAN GT-R (紅色內襯卡)', series: '普通車 / 跑車', region: '日版', box: '良好', location: '', val: 0, cost: 38, msrp: '', releaseDate: '', saleType: '一般', url: '', status: '已入手', channel: '', notes: '有特價標籤 $19 / $38', image: '' },
-      { id: '7', category: 'Tomica車仔', name: 'No.7 Mercedes-AMG GT R', series: '普通車 / 跑車', region: '日版', box: '良好', location: '', val: 0, cost: 0, msrp: '', releaseDate: '', saleType: '一般', url: '', status: '已入手', channel: '', notes: '綠色車身', image: '' },
-      { id: '8', category: 'Tomica車仔', name: 'Dream Tomica Ride On R04 多啦A夢 × 時光機', series: 'Dream Tomica / Ride On', region: '日版', box: '良好', location: '', val: 0, cost: 0, msrp: '', releaseDate: '', saleType: '一般', url: '', status: '已入手', channel: '', notes: '多啦A夢系列', image: '' },
-      { id: '9', category: 'Tomica車仔', name: 'PREMIUM NISMO R34 GT-R Z-tune PROTO', series: 'Premium / 跑車', region: '日版', box: '良好', location: '', val: 0, cost: 0, msrp: '', releaseDate: '', saleType: 'Premium', url: '', status: '已入手', channel: '', notes: 'SCALE 1/62', image: '' },
-      { id: '10', category: 'Tomica車仔', name: 'No.21 ABARTH 124 SPIDER', series: '普通車 / 跑車', region: '日版', box: '良好', location: '', val: 0, cost: 0, msrp: '', releaseDate: '', saleType: '一般', url: '', status: '已入手', channel: '', notes: 'SCALE 1/57', image: '' },
-      { id: '11', category: 'Tomica車仔', name: 'Dream Tomica No.167 カルビー じゃがりこ (Calbee Jagarico Salad)', series: 'Dream Tomica / 食品聯名', region: '日版', box: '良好', location: '', val: 0, cost: 0, msrp: '', releaseDate: '', saleType: '一般', url: '', status: '已入手', channel: '', notes: 'じゃがりこ聯名', image: '' },
-      { id: '12', category: 'Tomica車仔', name: 'PREMIUM No.16 TOYOTA 86 GRMN', series: 'Premium / 跑車', region: '日版', box: '良好', location: '', val: 0, cost: 0, msrp: '', releaseDate: '', saleType: 'Premium', url: '', status: '已入手', channel: '', notes: 'SCALE 1/60 白色', image: '' },
-      { id: '13', category: 'Tomica車仔', name: 'PREMIUM MAZDA RX-7 FD3S RE AMEMIYA SPECIFICATION', series: 'Premium / 跑車', region: '日版', box: '良好', location: '', val: 0, cost: 0, msrp: '', releaseDate: '', saleType: 'Premium', url: '', status: '已入手', channel: '', notes: 'SCALE 1/61 白色', image: '' },
-      { id: '14', category: 'Tomica車仔', name: 'STAR CARS SC-09 BB-8 (Star Wars)', series: 'Star Cars / Star Wars', region: '日版', box: '良好', location: '', val: 0, cost: 65, msrp: '', releaseDate: '', saleType: '一般', url: '', status: '已入手', channel: '', notes: '有特價標籤 $38 / $65', image: '' },
-      { id: '15', category: 'Tomica車仔', name: 'Dream Tomica No.143 多啦A夢 (2018 NEW!)', series: 'Dream Tomica', region: '日版', box: '良好', location: '', val: 0, cost: 0, msrp: '', releaseDate: '2018', saleType: '一般', url: '', status: '已入手', channel: '', notes: '多啦A夢系列', image: '' },
-      { id: '16', category: 'Tomica車仔', name: 'Dream Tomica ポケモン ゼクニアス レインボースピード (Xerneas Rainbow Speed)', series: 'Dream Tomica / Pokémon', region: '日版', box: '良好', location: '', val: 0, cost: 0, msrp: '', releaseDate: '2014', saleType: '一般', url: '', status: '已入手', channel: '', notes: 'NEW! 2014 Pokémon', image: '' }
+      { id: '1', category: '玩具模型', name: 'S.H.Figuarts MASKED RIDER FAIZ -20 假面騎士踢 Ver.-', series: 'TAMASHII NATIONS / S.H.Figuarts', region: '日版', box: '一般', location: '', val: 363, cost: 350, msrp: '¥5,500', releaseDate: '2018年10月', saleType: '一般', status: '已入手', channel: '秋葉原模型店', notes: '', image: '' },
+      { id: '2', category: '幪面超人', name: 'S.H.Figuarts (真骨彫製法) MASKED RIDER DARK KABUTO', series: '真骨彫製法', region: '港行版', box: '良好', location: '', val: 550, cost: 540, msrp: '', releaseDate: '2027年2月', saleType: '魂限', status: '預訂中', channel: 'P-Bandai', notes: '再販', image: '' }
     ];
 
     const DEFAULT_LOCATIONS = [
       { code: 'A-1', desc: '書櫃上層左', type: '書櫃', current: 5, max: 12, note: '' },
-      { code: 'A-2', desc: '書櫃上層右', type: '書櫃', current: 3, max: 12, note: '' },
       { code: 'B-1', desc: '展示櫃中層', type: '展示櫃', current: 8, max: 15, note: '燈光良好' },
-      { code: 'B-2', desc: '展示櫃下層', type: '展示櫃', current: 4, max: 10, note: '' },
-      { code: 'C-1', desc: '抽屜收納盒1', type: '收納盒', current: 20, max: 30, note: '未開盒存放' },
-      { code: 'C-2', desc: '抽屜收納盒2', type: '收納盒', current: 12, max: 30, note: '' },
-      { code: 'D-1', desc: '備用箱', type: '紙箱', current: 0, max: 50, note: '暫時存放' }
+      { code: 'C-1', desc: '抽屜收納盒1', type: '收納盒', current: 20, max: 30, note: '' }
     ];
 
-    let items = JSON.parse(localStorage.getItem('icollect_items_v3')) || DEFAULT_ITEMS;
-    let locations = JSON.parse(localStorage.getItem('icollect_locs_v3')) || DEFAULT_LOCATIONS;
+    let items = JSON.parse(localStorage.getItem('icollect_items_v4')) || DEFAULT_ITEMS;
+    let locations = JSON.parse(localStorage.getItem('icollect_locs_v4')) || DEFAULT_LOCATIONS;
     let currentCategory = 'ALL';
     let isGridView = true;
     let tempBase64Image = '';
     let html5QrCode = null;
 
     function saveToStorage() {
-      localStorage.setItem('icollect_items_v3', JSON.stringify(items));
-      localStorage.setItem('icollect_locs_v3', JSON.stringify(locations));
+      localStorage.setItem('icollect_items_v4', JSON.stringify(items));
+      localStorage.setItem('icollect_locs_v4', JSON.stringify(locations));
     }
 
     function setCategory(cat) {
@@ -334,9 +316,27 @@
 
     function toggleViewMode() {
       isGridView = !isGridView;
-      const container = document.getElementById('items-container');
-      container.className = isGridView ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2.5';
+      document.getElementById('items-container').className = isGridView ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2.5';
       renderItems();
+    }
+
+    function selectChip(type, val, btn) {
+      document.getElementById(`f-${type}`).value = val;
+      const parent = btn.parentElement;
+      Array.from(parent.children).forEach(child => {
+        child.className = 'py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700';
+      });
+      btn.className = 'py-1.5 px-2 text-xs font-bold rounded-lg border border-blue-600 bg-blue-600 text-white';
+    }
+
+    function initChips() {
+      // 預設選中第一粒膠囊
+      const catBtn = document.querySelector('#category-chips button');
+      if (catBtn) selectChip('category', '玩具模型', catBtn);
+      const statBtn = document.querySelector('#status-chips button');
+      if (statBtn) selectChip('status', '已入手', statBtn);
+      const regBtn = document.querySelector('#region-chips button');
+      if (regBtn) selectChip('region', '日版', regBtn);
     }
 
     function renderItems() {
@@ -364,7 +364,7 @@
         const imgHtml = item.image
           ? `<img src="${item.image}" class="${isGridView ? 'w-full h-32' : 'w-20 h-20'} object-cover bg-gray-100" />`
           : `<div class="${isGridView ? 'w-full h-32' : 'w-20 h-20 shrink-0'} bg-gradient-to-br from-slate-100 to-slate-200 flex flex-col items-center justify-center text-slate-400 p-2 text-center">
-               <span class="text-lg font-bold">${item.category === 'Tomica車仔' ? '🚗' : '🤖'}</span>
+               <span class="text-lg font-bold">${item.category === 'Tomica車仔' ? '🚗' : item.category === 'Re-ment' ? '🍱' : '🤖'}</span>
                <span class="text-[10px] mt-1 line-clamp-1">${item.region || '日版'}</span>
              </div>`;
 
@@ -400,7 +400,6 @@
                 <div class="flex gap-3 mt-1.5 text-[11px] text-gray-500">
                   <span>入手: <b class="text-gray-800">$${item.cost || 0}</b></span>
                   <span>估值: <b class="text-blue-600">$${item.val || 0}</b></span>
-                  ${item.location ? `<span>位置: <b>${item.location}</b></span>` : ''}
                 </div>
               </div>
             </div>`;
@@ -428,14 +427,12 @@
         </div>
 
         <div class="space-y-2 text-xs text-gray-700 border-t border-gray-100 pt-3">
-          <div class="flex justify-between"><span class="text-gray-400">個人入手狀況</span><span class="font-semibold">${item.status || '-'}</span></div>
+          <div class="flex justify-between"><span class="text-gray-400">入手狀況</span><span class="font-semibold">${item.status || '-'}</span></div>
           <div class="flex justify-between"><span class="text-gray-400">販售類型</span><span class="font-semibold">${item.saleType || '-'}</span></div>
           <div class="flex justify-between"><span class="text-gray-400">盒況</span><span class="font-semibold">${item.box || '-'}</span></div>
           <div class="flex justify-between"><span class="text-gray-400">擺放位置</span><span class="font-semibold">${item.location || '未設定'}</span></div>
-          <div class="flex justify-between"><span class="text-gray-400">官方定價 / 發售日</span><span class="font-semibold">${item.msrp || '-'} / ${item.releaseDate || '-'}</span></div>
-          <div class="flex justify-between"><span class="text-gray-400">購入管道</span><span class="font-semibold">${item.channel || '-'}</span></div>
+          <div class="flex justify-between"><span class="text-gray-400">發售日 / 管道</span><span class="font-semibold">${item.releaseDate || '-'} / ${item.channel || '-'}</span></div>
           ${item.notes ? `<div class="bg-amber-50/70 p-2.5 rounded-xl text-gray-700 mt-2"><b>備註：</b>${item.notes}</div>` : ''}
-          ${item.url ? `<a href="${item.url}" target="_blank" class="block text-center py-2 text-blue-600 font-semibold bg-blue-50 rounded-xl mt-2">打開官方/參考網頁 ↗</a>` : ''}
         </div>
 
         <div class="flex gap-2 mt-5">
@@ -452,7 +449,7 @@
       document.getElementById('f-id').value = '';
       tempBase64Image = '';
       document.getElementById('f-img-preview').classList.add('hidden');
-      document.getElementById('barcode-helper').classList.add('hidden');
+      initChips();
       document.getElementById('form-modal').classList.remove('hidden');
     }
 
@@ -474,13 +471,11 @@
       document.getElementById('f-region').value = item.region || '日版';
       document.getElementById('f-cost').value = item.cost || '';
       document.getElementById('f-val').value = item.val || '';
-      document.getElementById('f-msrp').value = item.msrp || '';
       document.getElementById('f-box').value = item.box || '良好';
       document.getElementById('f-saleType').value = item.saleType || '一般';
       document.getElementById('f-location').value = item.location || '';
       document.getElementById('f-releaseDate').value = item.releaseDate || '';
       document.getElementById('f-channel').value = item.channel || '';
-      document.getElementById('f-url').value = item.url || '';
       document.getElementById('f-notes').value = item.notes || '';
       tempBase64Image = item.image || '';
       const preview = document.getElementById('f-img-preview');
@@ -490,7 +485,6 @@
       } else {
         preview.classList.add('hidden');
       }
-      document.getElementById('barcode-helper').classList.add('hidden');
       document.getElementById('form-modal').classList.remove('hidden');
     }
 
@@ -518,7 +512,7 @@
       reader.readAsDataURL(file);
     }
 
-    function saveItem(e) {
+    function saveItem(e, keepOpen = false) {
       e.preventDefault();
       stopBarcodeScan();
       const id = document.getElementById('f-id').value;
@@ -531,13 +525,11 @@
         region: document.getElementById('f-region').value,
         cost: Number(document.getElementById('f-cost').value) || 0,
         val: Number(document.getElementById('f-val').value) || 0,
-        msrp: document.getElementById('f-msrp').value,
         box: document.getElementById('f-box').value,
         saleType: document.getElementById('f-saleType').value,
         location: document.getElementById('f-location').value,
         releaseDate: document.getElementById('f-releaseDate').value,
         channel: document.getElementById('f-channel').value,
-        url: document.getElementById('f-url').value,
         notes: document.getElementById('f-notes').value,
         image: tempBase64Image
       };
@@ -548,8 +540,21 @@
         items.unshift(data);
       }
       saveToStorage();
-      closeFormModal();
       renderItems();
+
+      if (keepOpen) {
+        // 連續新增模式：保留分類與狀態，清空名稱與相片，方便極速入下一件
+        document.getElementById('f-id').value = '';
+        document.getElementById('f-name').value = '';
+        document.getElementById('f-cost').value = '';
+        document.getElementById('f-val').value = '';
+        document.getElementById('f-notes').value = '';
+        tempBase64Image = '';
+        document.getElementById('f-img-preview').classList.add('hidden');
+        document.getElementById('f-name').focus();
+      } else {
+        closeFormModal();
+      }
     }
 
     function deleteItem(id) {
@@ -564,14 +569,12 @@
       const container = document.getElementById('locations-container');
       container.innerHTML = locations.map((loc, idx) => {
         const pct = Math.min(100, Math.round((loc.current / loc.max) * 100));
-        const rem = loc.max - loc.current;
         return `
-          <div class="bg-white p-3.5 rounded-2xl border border-gray-200/80 shadow-sm">
+          <div class="bg-white p-3.5 rounded-2xl border border-gray-200/85 shadow-sm">
             <div class="flex justify-between items-center">
               <div>
                 <span class="text-xs font-bold bg-gray-900 text-white px-2 py-0.5 rounded">${loc.code}</span>
                 <span class="text-sm font-bold text-gray-800 ml-1.5">${loc.desc}</span>
-                <span class="text-xs text-gray-400 ml-1">(${loc.type})</span>
               </div>
               <div class="flex items-center gap-1.5">
                 <button onclick="adjustLoc(${idx}, -1)" class="w-7 h-7 rounded-lg bg-gray-100 font-bold text-gray-600">-</button>
@@ -581,10 +584,6 @@
             </div>
             <div class="w-full bg-gray-100 h-2 rounded-full mt-2.5 overflow-hidden">
               <div class="bg-blue-600 h-full rounded-full" style="width: ${pct}%"></div>
-            </div>
-            <div class="flex justify-between text-[11px] text-gray-500 mt-1.5">
-              <span>${loc.note || '無備註'}</span>
-              <span>剩餘空間: <b class="text-gray-800">${rem}</b></span>
             </div>
           </div>`;
       }).join('');
@@ -599,7 +598,7 @@
     function openLocationModal() {
       const code = prompt('輸入位置編號（例如 E-1）：');
       if (!code) return;
-      const desc = prompt('輸入位置描述（例如 玻璃櫃頂層）：') || '';
+      const desc = prompt('輸入位置描述：') || '';
       const max = Number(prompt('輸入最大容量：')) || 10;
       locations.push({ code, desc, type: '自訂', current: 0, max, note: '' });
       saveToStorage();
@@ -619,8 +618,8 @@
     }
 
     function exportCSV() {
-      const headers = ['分類','名稱','系列','地區版本','盒況','擺放位置','二手估值','實際入手價','官方定價','官方發售日','販售類型','個人入手狀況','購入管道','備註'];
-      const rows = items.map(i => [i.category, i.name, i.series, i.region, i.box, i.location, i.val, i.cost, i.msrp, i.releaseDate, i.saleType, i.status, i.channel, i.notes].map(v => `"${(v||'').toString().replace(/"/g, '""')}"`).join(','));
+      const headers = ['分類','名稱','系列','地區版本','盒況','擺放位置','二手估值','實際入手價','發售日','入手狀況','備註'];
+      const rows = items.map(i => [i.category, i.name, i.series, i.region, i.box, i.location, i.val, i.cost, i.releaseDate, i.status, i.notes].map(v => `"${(v||'').toString().replace(/"/g, '""')}"`).join(','));
       const csv = '\uFEFF' + [headers.join(','), ...rows].join('\n');
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
@@ -652,69 +651,26 @@
       reader.readAsText(file);
     }
 
-    // 掃描 Barcode 結合全球開源商品 API 進行雲端一站式自動填表
+    // 條碼掃描
     function startBarcodeScan() {
       const container = document.getElementById('scanner-container');
-      const helper = document.getElementById('barcode-helper');
       container.classList.remove('hidden');
-      helper.classList.add('hidden');
-      
-      if (!html5QrCode) {
-        html5QrCode = new Html5Qrcode("reader");
-      }
+      if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
       
       html5QrCode.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 100 } },
-        async (decodedText) => {
+        (decodedText) => {
           stopBarcodeScan();
-          const nameInput = document.getElementById('f-name');
-          const seriesInput = document.getElementById('f-series');
-          const catSelect = document.getElementById('f-category');
-          const notesInput = document.getElementById('f-notes');
-          const statusText = document.getElementById('barcode-status-text');
-          const googleLink = document.getElementById('barcode-google-link');
-
-          helper.classList.remove('hidden');
-          statusText.textContent = `條碼 ${decodedText}：正在雲端數據庫檢索...`;
-          googleLink.href = `https://www.google.com/search?q=${encodeURIComponent(decodedText)}`;
-
-          // 記錄條碼至備註
-          if (!notesInput.value.includes(decodedText)) {
-            notesInput.value = `JAN: ${decodedText} ` + (notesInput.value || '');
+          document.getElementById('f-name').value = decodedText;
+          const notes = document.getElementById('f-notes');
+          if (!notes.value.includes(decodedText)) {
+            notes.value = `JAN: ${decodedText} ` + notes.value;
           }
-
-          // 智慧前綴預判
-          if (decodedText.startsWith('4904810')) {
-            catSelect.value = 'Tomica車仔';
-            seriesInput.value = 'Takara Tomy / Tomica';
-          } else if (decodedText.startsWith('4573102') || decodedText.startsWith('4549660')) {
-            catSelect.value = '玩具模型';
-            seriesInput.value = 'BANDAI SPIRITS';
-          }
-
-          nameInput.value = decodedText;
-
-          // 呼叫免費全球商品雲端 API (UPCitemdb)
-          try {
-            const apiRes = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${decodedText}`);
-            const apiData = await apiRes.json();
-            if (apiData && apiData.items && apiData.items.length > 0) {
-              const product = apiData.items[0];
-              if (product.title) {
-                nameInput.value = product.title;
-                if (product.brand) seriesInput.value = product.brand;
-                statusText.textContent = `✅ 成功透過雲端自動填入商品資料！`;
-                return;
-              }
-            }
-          } catch (e) {}
-
-          statusText.textContent = `⚠️ 雲端庫無紀錄，已代入條碼並可一鍵 Google。`;
         },
         () => {}
       ).catch(() => {
-        alert("無法開啟相機，請確保已允許 Safari 使用相機權限。");
+        alert("無法開啟相機，請檢查 Safari 相機權限。");
         container.classList.add('hidden');
       });
     }
