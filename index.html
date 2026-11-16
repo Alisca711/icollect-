@@ -137,18 +137,18 @@ body {
     <form id="item-form" onsubmit="saveItem(event, false)" class="space-y-3 text-sm">
       <input type="hidden" id="f-id" />
 
-      <!-- 相片上傳 + 預覽 + Google Lens -->
+      <!-- 相片上傳 + 預覽 + 系統分享 Google Lens -->
       <div class="bg-gray-50 p-3 rounded-xl border border-dashed border-gray-300">
         <div class="flex items-start gap-3">
           <img id="f-img-preview" src="" class="w-20 h-20 rounded-lg object-cover bg-gray-200 hidden shrink-0" />
           <div class="flex-1 min-w-0">
             <label class="block font-semibold text-gray-700 text-xs mb-1">藏品相片</label>
-            <input type="file" accept="image/*" capture="environment" onchange="handleImageUpload(event)" class="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700" />
+            <input id="f-img-input" type="file" accept="image/*" onchange="handleImageUpload(event)" class="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700" />
             
             <!-- 圖片操作按鈕（有圖先顯示） -->
             <div id="image-actions" class="hidden mt-2.5 flex flex-wrap gap-2">
               <button type="button" onclick="searchWithGoogleLens()" class="text-xs font-semibold bg-indigo-600 text-white px-3 py-1.5 rounded-lg active:bg-indigo-700 flex items-center gap-1">
-                🔍 Google Lens 搜尋
+                🔍 Google 識圖 / 分享
               </button>
               <button type="button" onclick="pasteNameFromClipboard()" class="text-xs font-semibold bg-emerald-600 text-white px-3 py-1.5 rounded-lg active:bg-emerald-700 flex items-center gap-1">
                 📋 貼上名稱
@@ -156,9 +156,7 @@ body {
             </div>
           </div>
         </div>
-        <p id="lens-tip" class="hidden text-[11px] text-gray-500 mt-2 leading-relaxed">
-          已開啟 Google Lens。如果成功複製圖片，可直接喺 Lens 頁面貼上（手機長按 → 貼上）。
-        </p>
+        <p id="lens-tip" class="hidden text-[11px] text-gray-600 bg-indigo-50/70 p-2 rounded-lg mt-2 leading-relaxed"></p>
       </div>
 
       <!-- 大分類快速點選膠囊 -->
@@ -230,21 +228,28 @@ body {
         <div>
           <label class="block text-xs font-semibold text-gray-600 mb-1">實際入手價 (HKD)</label>
           <input id="f-cost" type="number" step="0.1" placeholder="0" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-          <div class="flex gap-1 mt-1.5">
-            <button type="button" onclick="document.getElementById('f-cost').value='0'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$0</button>
-            <button type="button" onclick="document.getElementById('f-cost').value='38'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$38</button>
-            <button type="button" onclick="document.getElementById('f-cost').value='350'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$350</button>
-            <button type="button" onclick="document.getElementById('f-cost').value='550'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$550</button>
+        <!-- 價錢快速點選（全品類綜合階梯版） -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">實際入手價 (HKD)</label>
+          <input id="f-cost" type="number" step="0.1" placeholder="0" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+          <div class="grid grid-cols-5 gap-1 mt-1.5">
+            <button type="button" onclick="document.getElementById('f-cost').value='15'" class="text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$15</button>
+            <button type="button" onclick="document.getElementById('f-cost').value='38'" class="text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$38</button>
+            <button type="button" onclick="document.getElementById('f-cost').value='65'" class="text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$65</button>
+            <button type="button" onclick="document.getElementById('f-cost').value='350'" class="text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$350</button>
+            <button type="button" onclick="document.getElementById('f-cost').value='550'" class="text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$550</button>
           </div>
         </div>
         <div>
           <label class="block text-xs font-semibold text-gray-600 mb-1">二手估值 (HKD)</label>
           <input id="f-val" type="number" step="0.1" placeholder="0" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-          <div class="flex gap-1 mt-1.5">
-            <button type="button" onclick="document.getElementById('f-val').value='0'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$0</button>
-            <button type="button" onclick="document.getElementById('f-val').value='363.44'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$363</button>
-            <button type="button" onclick="document.getElementById('f-val').value='550'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$550</button>
-            <button type="button" onclick="document.getElementById('f-val').value='1100'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$1100</button>
+          <div class="grid grid-cols-5 gap-1 mt-1.5">
+            <button type="button" onclick="document.getElementById('f-val').value='30'" class="text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$30</button>
+            <button type="button" onclick="document.getElementById('f-val').value='50'" class="text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$50</button>
+            <button type="button" onclick="document.getElementById('f-val').value='85'" class="text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$85</button>
+            <button type="button" onclick="document.getElementById('f-val').value='450'" class="text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$450</button>
+            <button type="button" onclick="document.getElementById('f-val').value='900'" class="text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$900</button>
           </div>
         </div>
       </div>
@@ -299,6 +304,26 @@ body {
   </div>
 </div>
 
+<!-- 新增位置 Modal -->
+<div id="location-modal" class="fixed inset-0 z-50 bg-black/50 hidden flex items-center justify-center p-4">
+  <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-3">
+    <div class="flex justify-between items-center">
+      <h3 class="text-base font-bold">新增擺放位置</h3>
+      <button onclick="document.getElementById('location-modal').classList.add('hidden')" class="text-gray-400">✕</button>
+    </div>
+    <form onsubmit="saveLocation(event)" class="space-y-2.5 text-sm">
+      <input id="l-code" required type="text" placeholder="位置編號 (如 A-2)" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+      <input id="l-desc" required type="text" placeholder="位置描述 (如 客廳透明櫃頂層)" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+      <div class="grid grid-cols-2 gap-2">
+        <input id="l-type" type="text" placeholder="類型 (展示櫃/收納盒)" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+        <input id="l-max" type="number" placeholder="上限數量 (如 20)" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+      </div>
+      <input id="l-note" type="text" placeholder="備註 (防塵、燈光等)" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+      <button type="submit" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded-xl">儲存位置</button>
+    </form>
+  </div>
+</div>
+
 <!-- 備份與匯出 Modal -->
 <div id="backup-modal" class="fixed inset-0 z-50 bg-black/50 hidden flex items-center justify-center p-4">
   <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-3">
@@ -331,6 +356,15 @@ let html5QrCode = null;
 function saveToStorage() {
   localStorage.setItem('icollect_items_v4', JSON.stringify(items));
   localStorage.setItem('icollect_locs_v4', JSON.stringify(locations));
+}
+
+function switchTab(tab) {
+  const isCol = tab === 'collection';
+  document.getElementById('view-collection').classList.toggle('hidden', !isCol);
+  document.getElementById('view-locations').classList.toggle('hidden', isCol);
+  document.getElementById('tab-collection').className = `flex flex-col items-center ${isCol ? 'text-blue-600' : 'text-gray-400'}`;
+  document.getElementById('tab-locations').className = `flex flex-col items-center ${!isCol ? 'text-blue-600' : 'text-gray-400'}`;
+  if (!isCol) renderLocations();
 }
 
 function setCategory(cat) {
@@ -385,6 +419,138 @@ function quickFillSeries(val) {
   document.getElementById('f-series').value = val;
 }
 
+// 圖片上傳並壓縮（減省 localStorage 容量）
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const maxDim = 800;
+      let w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+        else { w = Math.round((w * maxDim) / h); h = maxDim; }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      tempBase64Image = canvas.toDataURL('image/jpeg', 0.8);
+
+      const preview = document.getElementById('f-img-preview');
+      preview.src = tempBase64Image;
+      preview.classList.remove('hidden');
+      document.getElementById('image-actions').classList.remove('hidden');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// 將 Base64 轉為 File 物件，供系統分享選單使用
+function base64ToFile(base64Data, filename) {
+  const arr = base64Data.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename, { type: mime });
+}
+
+// 撳掣後直接用系統分享圖片去 Google App / Lens
+async function searchWithGoogleLens() {
+  if (!tempBase64Image) {
+    alert('請先選擇或拍攝相片');
+    return;
+  }
+
+  const tip = document.getElementById('lens-tip');
+
+  try {
+    const file = base64ToFile(tempBase64Image, 'collect_item.jpg');
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: '搜尋藏品資料'
+      });
+
+      tip.classList.remove('hidden');
+      tip.innerHTML = `
+        <b>系統分享操作提示：</b><br>
+        1. 喺分享選單揀 <b>「Google」</b> 或 <b>「使用 Google 搜尋圖片」</b><br>
+        2. 搵到正確產品後，長按產品名稱 → <b>拷貝</b><br>
+        3. 返嚟呢度撳綠色 <b>「📋 貼上名稱」</b>
+      `;
+      return;
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') return;
+    console.warn('系統分享失敗，改用網頁版開啟:', err);
+  }
+
+  // Fallback：不支援檔案分享時改開網頁版 Google Lens
+  window.open('https://lens.google.com/upload', '_blank');
+  tip.classList.remove('hidden');
+  tip.innerHTML = `
+    已開啟網頁版 Google Lens。<br>
+    1. 撳「上傳圖片」並選擇相片<br>
+    2. 搵到正確產品後，長按名稱 → 拷貝<br>
+    3. 返嚟呢度撳綠色 <b>「📋 貼上名稱」</b>
+  `;
+}
+
+// 貼上名稱
+async function pasteNameFromClipboard() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text && text.trim()) {
+      document.getElementById('f-name').value = text.trim();
+      if (navigator.vibrate) navigator.vibrate(30);
+    } else {
+      alert('剪貼簿目前沒有文字。\n請先喺 Google App / Lens 長按產品名稱 → 拷貝，再返嚟撳呢個按鈕。');
+    }
+  } catch (err) {
+    alert('無法讀取剪貼簿，請手動喺名稱欄長按貼上。');
+  }
+}
+
+// 相機條碼掃描
+function startBarcodeScan() {
+  const container = document.getElementById('scanner-container');
+  container.classList.remove('hidden');
+  html5QrCode = new Html5Qrcode("reader");
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 240, height: 120 } },
+    (decodedText) => {
+      const nameInput = document.getElementById('f-name');
+      nameInput.value = nameInput.value ? `${nameInput.value} [${decodedText}]` : decodedText;
+      if (navigator.vibrate) navigator.vibrate(40);
+      stopBarcodeScan();
+    },
+    () => {}
+  ).catch(err => {
+    alert('無法開啟相機掃描：' + err);
+    container.classList.add('hidden');
+  });
+}
+
+function stopBarcodeScan() {
+  if (html5QrCode) {
+    html5QrCode.stop().then(() => {
+      html5QrCode.clear();
+      html5QrCode = null;
+    }).catch(() => {});
+  }
+  document.getElementById('scanner-container').classList.add('hidden');
+}
+
 function renderItems() {
   const q = document.getElementById('search-input').value.toLowerCase();
   const filtered = items.filter(item => {
@@ -406,8 +572,13 @@ function renderItems() {
   document.getElementById('stat-count').textContent = filtered.length;
 
   const container = document.getElementById('items-container');
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="col-span-2 text-center py-12 text-gray-400 text-xs">暫時未有符合條件嘅藏品，撳右上角「+ 新增」開始記錄！</div>`;
+    return;
+  }
+
   container.innerHTML = filtered.map(item => {
-    const badgeColor = item.status === '預訂中' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800';
+    const badgeColor = item.status === '預訂中' ? 'bg-amber-100 text-amber-800' : item.status === '想買' ? 'bg-sky-100 text-sky-800' : item.status === '已出售' ? 'bg-gray-200 text-gray-600' : 'bg-emerald-100 text-emerald-800';
     const imgHtml = item.image
       ? `<img src="${item.image}" class="${isGridView ? 'w-full h-32' : 'w-20 h-20'} object-cover bg-gray-100" />`
       : `<div class="${isGridView ? 'w-full h-32' : 'w-20 h-20 shrink-0'} bg-gradient-to-br from-slate-100 to-slate-200 flex flex-col items-center justify-center text-slate-400 p-2 text-center">
@@ -490,15 +661,17 @@ function openDetail(id) {
   document.getElementById('detail-modal').classList.remove('hidden');
 }
 
-function openFormModal() {
-  document.getElementById('form-title').textContent = '新增藏品';
-  document.getElementById('item-form').reset();
-  document.getElementById('f-id').value = '';
-  tempBase64Image = '';
-  document.getElementById('f-img-preview').classList.add('hidden');
-  document.getElementById('image-actions').classList.add('hidden');
-  document.getElementById('lens-tip').classList.add('hidden');
-  initChips();
+function openFormModal(reset = true) {
+  if (reset) {
+    document.getElementById('item-form').reset();
+    document.getElementById('f-id').value = '';
+    document.getElementById('form-title').textContent = '新增藏品';
+    tempBase64Image = '';
+    document.getElementById('f-img-preview').classList.add('hidden');
+    document.getElementById('image-actions').classList.add('hidden');
+    document.getElementById('lens-tip').classList.add('hidden');
+    initChips();
+  }
   document.getElementById('form-modal').classList.remove('hidden');
 }
 
@@ -508,16 +681,14 @@ function closeFormModal() {
 }
 
 function editItem(id) {
-  document.getElementById('detail-modal').classList.add('hidden');
   const item = items.find(i => i.id === id);
   if (!item) return;
+  document.getElementById('detail-modal').classList.add('hidden');
+  openFormModal(false);
   document.getElementById('form-title').textContent = '編輯藏品';
   document.getElementById('f-id').value = item.id;
-  document.getElementById('f-category').value = item.category;
-  document.getElementById('f-status').value = item.status || '已入手';
-  document.getElementById('f-name').value = item.name;
+  document.getElementById('f-name').value = item.name || '';
   document.getElementById('f-series').value = item.series || '';
-  document.getElementById('f-region').value = item.region || '日版';
   document.getElementById('f-cost').value = item.cost || '';
   document.getElementById('f-val').value = item.val || '';
   document.getElementById('f-box').value = item.box || '良好';
@@ -526,264 +697,193 @@ function editItem(id) {
   document.getElementById('f-releaseDate').value = item.releaseDate || '';
   document.getElementById('f-channel').value = item.channel || '';
   document.getElementById('f-notes').value = item.notes || '';
-  tempBase64Image = item.image || '';
-  const preview = document.getElementById('f-img-preview');
-  if (tempBase64Image) {
-    preview.src = tempBase64Image;
+
+  // 同步膠囊狀態
+  ['category', 'status', 'region'].forEach(type => {
+    const targetVal = item[type];
+    const btns = document.querySelectorAll(`#${type}-chips button`);
+    btns.forEach(btn => {
+      if (btn.textContent.includes(targetVal) || (targetVal === 'Tomica車仔' && btn.textContent === 'Tomica')) {
+        selectChip(type, targetVal, btn);
+      }
+    });
+  });
+
+  if (item.image) {
+    tempBase64Image = item.image;
+    const preview = document.getElementById('f-img-preview');
+    preview.src = item.image;
     preview.classList.remove('hidden');
     document.getElementById('image-actions').classList.remove('hidden');
   } else {
-    preview.classList.add('hidden');
+    tempBase64Image = '';
+    document.getElementById('f-img-preview').classList.add('hidden');
     document.getElementById('image-actions').classList.add('hidden');
   }
-  document.getElementById('lens-tip').classList.add('hidden');
-  document.getElementById('form-modal').classList.remove('hidden');
 }
 
-function handleImageUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      const maxDim = 800;
-      let w = img.width, h = img.height;
-      if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
-      else if (h > maxDim) { w *= maxDim / h; h = maxDim; }
-      canvas.width = w;
-      canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      tempBase64Image = canvas.toDataURL('image/jpeg', 0.8);
-      const preview = document.getElementById('f-img-preview');
-      preview.src = tempBase64Image;
-      preview.classList.remove('hidden');
-      document.getElementById('image-actions').classList.remove('hidden');
-      document.getElementById('lens-tip').classList.add('hidden');
-    };
-    img.src = event.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-// ========== 新增功能：Google Lens + 剪貼簿 ==========
-async function searchWithGoogleLens() {
-  if (!tempBase64Image) {
-    alert('請先選擇或拍攝相片');
+function saveItem(event, keepOpen = false) {
+  if (event) event.preventDefault();
+  const nameVal = document.getElementById('f-name').value.trim();
+  if (!nameVal) {
+    alert('請輸入藏品編號或名稱');
     return;
   }
 
-  // 嘗試把圖片複製到剪貼簿（方便喺 Lens 直接貼上）
-  let copied = false;
-  try {
-    const res = await fetch(tempBase64Image);
-    const blob = await res.blob();
-    await navigator.clipboard.write([
-      new ClipboardItem({ [blob.type]: blob })
-    ]);
-    copied = true;
-  } catch (err) {
-    console.log('無法自動複製圖片到剪貼簿:', err);
-  }
-
-  // 開啟 Google Lens
-  window.open('https://lens.google.com/', '_blank');
-
-  // 顯示提示
-  const tip = document.getElementById('lens-tip');
-  tip.classList.remove('hidden');
-  if (copied) {
-    tip.textContent = '已開啟 Google Lens，並成功把圖片複製到剪貼簿。請喺 Lens 頁面直接貼上（手機長按空白處 → 貼上）。';
-  } else {
-    tip.textContent = '已開啟 Google Lens。請手動上載或拍攝同一張相進行搜尋。';
-  }
-}
-
-async function pasteNameFromClipboard() {
-  try {
-    const text = await navigator.clipboard.readText();
-    if (text && text.trim()) {
-      document.getElementById('f-name').value = text.trim();
-      // 輕微震動回饋（支援嘅裝置）
-      if (navigator.vibrate) navigator.vibrate(30);
-    } else {
-      alert('剪貼簿目前沒有文字內容');
-    }
-  } catch (err) {
-    alert('無法讀取剪貼簿。\n請確認已授權剪貼簿權限，或手動貼上。');
-  }
-}
-
-function saveItem(e, keepOpen = false) {
-  e.preventDefault();
-  stopBarcodeScan();
-  const id = document.getElementById('f-id').value;
-  const data = {
-    id: id || Date.now().toString(),
+  const existingId = document.getElementById('f-id').value;
+  const itemData = {
+    id: existingId || 'item_' + Date.now(),
     category: document.getElementById('f-category').value,
     status: document.getElementById('f-status').value,
-    name: document.getElementById('f-name').value,
-    series: document.getElementById('f-series').value,
+    name: nameVal,
+    series: document.getElementById('f-series').value.trim(),
     region: document.getElementById('f-region').value,
     cost: Number(document.getElementById('f-cost').value) || 0,
     val: Number(document.getElementById('f-val').value) || 0,
     box: document.getElementById('f-box').value,
     saleType: document.getElementById('f-saleType').value,
-    location: document.getElementById('f-location').value,
-    releaseDate: document.getElementById('f-releaseDate').value,
-    channel: document.getElementById('f-channel').value,
-    notes: document.getElementById('f-notes').value,
-    image: tempBase64Image
+    location: document.getElementById('f-location').value.trim(),
+    releaseDate: document.getElementById('f-releaseDate').value.trim(),
+    channel: document.getElementById('f-channel').value.trim(),
+    notes: document.getElementById('f-notes').value.trim(),
+    image: tempBase64Image,
+    updatedAt: new Date().toISOString()
   };
-  if (id) {
-    const idx = items.findIndex(i => i.id === id);
-    if (idx > -1) items[idx] = data;
+
+  if (existingId) {
+    const idx = items.findIndex(i => i.id === existingId);
+    if (idx !== -1) items[idx] = itemData;
   } else {
-    items.unshift(data);
+    items.unshift(itemData);
   }
+
   saveToStorage();
   renderItems();
 
   if (keepOpen) {
+    // 保留分類與系列設定，清空名稱、價錢、相片以便快速錄入下一件
     document.getElementById('f-id').value = '';
     document.getElementById('f-name').value = '';
-    document.getElementById('f-cost').value = '';
-    document.getElementById('f-val').value = '';
     document.getElementById('f-notes').value = '';
     tempBase64Image = '';
+    document.getElementById('f-img-input').value = '';
     document.getElementById('f-img-preview').classList.add('hidden');
     document.getElementById('image-actions').classList.add('hidden');
     document.getElementById('lens-tip').classList.add('hidden');
-    document.getElementById('f-name').focus();
+    if (navigator.vibrate) navigator.vibrate(30);
   } else {
     closeFormModal();
   }
 }
 
 function deleteItem(id) {
-  if (!confirm('確定要刪除呢件藏品記錄？')) return;
+  if (!confirm('確定要刪除呢件藏品嗎？')) return;
   items = items.filter(i => i.id !== id);
   saveToStorage();
   document.getElementById('detail-modal').classList.add('hidden');
   renderItems();
 }
 
+// 擺放位置管理
 function renderLocations() {
   const container = document.getElementById('locations-container');
   container.innerHTML = locations.map((loc, idx) => {
-    const pct = Math.min(100, Math.round((loc.current / loc.max) * 100));
+    const count = items.filter(i => (i.location || '').toLowerCase() === loc.code.toLowerCase()).length;
+    const max = Number(loc.max) || 20;
+    const pct = Math.min(100, Math.round((count / max) * 100));
     return `
-      <div class="bg-white p-3.5 rounded-2xl border border-gray-200/85 shadow-sm">
-        <div class="flex justify-between items-center">
+      <div class="bg-white p-3.5 rounded-2xl border border-gray-200/80 shadow-sm">
+        <div class="flex justify-between items-start">
           <div>
-            <span class="text-xs font-bold bg-gray-900 text-white px-2 py-0.5 rounded">${loc.code}</span>
-            <span class="text-sm font-bold text-gray-800 ml-1.5">${loc.desc}</span>
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700">${loc.code}</span>
+            <span class="text-sm font-bold text-gray-900 ml-1.5">${loc.desc}</span>
+            <p class="text-[11px] text-gray-500 mt-1">${loc.type || '一般收納'} ${loc.note ? '· ' + loc.note : ''}</p>
           </div>
-          <div class="flex items-center gap-1.5">
-            <button onclick="adjustLoc(${idx}, -1)" class="w-7 h-7 rounded-lg bg-gray-100 font-bold text-gray-600">-</button>
-            <span class="text-xs font-bold w-12 text-center">${loc.current}/${loc.max}</span>
-            <button onclick="adjustLoc(${idx}, 1)" class="w-7 h-7 rounded-lg bg-gray-100 font-bold text-gray-600">+</button>
-          </div>
+          <button onclick="deleteLocation(${idx})" class="text-xs text-gray-400 hover:text-rose-500">刪除</button>
         </div>
-        <div class="w-full bg-gray-100 h-2 rounded-full mt-2.5 overflow-hidden">
-          <div class="bg-blue-600 h-full rounded-full" style="width: ${pct}%"></div>
+        <div class="mt-3">
+          <div class="flex justify-between text-[11px] mb-1">
+            <span class="text-gray-500">已存放數量</span>
+            <span class="font-bold ${pct >= 90 ? 'text-rose-600' : 'text-gray-800'}">${count} / ${max} 件 (${pct}%)</span>
+          </div>
+          <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div class="h-full ${pct >= 90 ? 'bg-rose-500' : 'bg-blue-600'} rounded-full" style="width: ${pct}%"></div>
+          </div>
         </div>
       </div>`;
   }).join('');
 }
 
-function adjustLoc(idx, delta) {
-  locations[idx].current = Math.max(0, locations[idx].current + delta);
-  saveToStorage();
-  renderLocations();
-}
-
 function openLocationModal() {
-  const code = prompt('輸入位置編號（例如 E-1）：');
-  if (!code) return;
-  const desc = prompt('輸入位置描述：') || '';
-  const max = Number(prompt('輸入最大容量：')) || 10;
-  locations.push({ code, desc, type: '自訂', current: 0, max, note: '' });
+  document.getElementById('location-modal').classList.remove('hidden');
+}
+
+function saveLocation(event) {
+  event.preventDefault();
+  locations.push({
+    code: document.getElementById('l-code').value.trim(),
+    desc: document.getElementById('l-desc').value.trim(),
+    type: document.getElementById('l-type').value.trim(),
+    max: Number(document.getElementById('l-max').value) || 20,
+    note: document.getElementById('l-note').value.trim()
+  });
+  saveToStorage();
+  document.getElementById('location-modal').classList.add('hidden');
+  event.target.reset();
+  renderLocations();
+}
+
+function deleteLocation(idx) {
+  if (!confirm('確定刪除此擺放位置？')) return;
+  locations.splice(idx, 1);
   saveToStorage();
   renderLocations();
 }
 
-function switchTab(tab) {
-  document.getElementById('view-collection').classList.toggle('hidden', tab !== 'collection');
-  document.getElementById('view-locations').classList.toggle('hidden', tab !== 'locations');
-  document.getElementById('tab-collection').className = 'flex flex-col items-center ' + (tab === 'collection' ? 'text-blue-600' : 'text-gray-400');
-  document.getElementById('tab-locations').className = 'flex flex-col items-center ' + (tab === 'locations' ? 'text-blue-600' : 'text-gray-400');
-  if (tab === 'locations') renderLocations();
-}
-
+// 備份與匯出 / 匯入
 function openBackupModal() {
   document.getElementById('backup-modal').classList.remove('hidden');
 }
 
 function exportJSON() {
+  const payload = { exportedAt: new Date().toISOString(), items, locations };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify({ items, locations })], { type: 'application/json' }));
-  a.download = '藏品完整備份_' + new Date().toISOString().slice(0,10) + '.json';
+  a.href = url;
+  a.download = `icollect_backup_${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
+  URL.revokeObjectURL(url);
 }
 
-function importJSON(e) {
-  const file = e.target.files[0];
+function importJSON(event) {
+  const file = event.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = ev => {
+  reader.onload = function(e) {
     try {
-      const data = JSON.parse(ev.target.result);
-      if (data.items) items = data.items;
-      if (data.locations) locations = data.locations;
+      const data = JSON.parse(e.target.result);
+      if (Array.isArray(data)) {
+        items = data;
+      } else if (data.items) {
+        items = data.items;
+        if (data.locations) locations = data.locations;
+      } else {
+        throw new Error('格式不符');
+      }
       saveToStorage();
       renderItems();
-      alert('備份還原成功！');
       document.getElementById('backup-modal').classList.add('hidden');
-    } catch {
-      alert('檔案格式不正確');
+      alert(`成功匯入 ${items.length} 件藏品資料！`);
+    } catch (err) {
+      alert('JSON 檔案格式錯誤：' + err.message);
     }
   };
   reader.readAsText(file);
 }
 
-function startBarcodeScan() {
-  const container = document.getElementById('scanner-container');
-  container.classList.remove('hidden');
-  if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-
-  html5QrCode.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: { width: 250, height: 100 } },
-    (decodedText) => {
-      stopBarcodeScan();
-      document.getElementById('f-name').value = decodedText;
-      const notes = document.getElementById('f-notes');
-      if (!notes.value.includes(decodedText)) {
-        notes.value = 'JAN: ' + decodedText + (notes.value ? ' | ' + notes.value : '');
-      }
-    },
-    () => {}
-  ).catch(() => {
-    alert("無法開啟相機，請檢查 Safari 相機權限。");
-    container.classList.add('hidden');
-  });
-}
-
-function stopBarcodeScan() {
-  if (html5QrCode) {
-    html5QrCode.stop().then(() => {
-      document.getElementById('scanner-container').classList.add('hidden');
-    }).catch(() => {
-      document.getElementById('scanner-container').classList.add('hidden');
-    });
-  } else {
-    document.getElementById('scanner-container').classList.add('hidden');
-  }
-}
-
-// 初始化
+// 初始化渲染
+initChips();
 renderItems();
 </script>
 </body>
