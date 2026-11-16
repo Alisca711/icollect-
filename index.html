@@ -1,701 +1,790 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="我的藏品庫" />
-  <title>我的藏品庫 | iCollect 極速版</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <style>
-    body {
-      -webkit-tap-highlight-color: transparent;
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
-      background-color: #f3f4f6;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-    }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="我的藏品庫" />
+<title>我的藏品庫 | iCollect 極速版</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<style>
+body {
+  -webkit-tap-highlight-color: transparent;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
+  background-color: #f3f4f6;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+}
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
 </head>
 <body class="text-gray-900">
 
-  <!-- 頂部導航與統計看板 -->
-  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-gray-200 px-4 pt-3 pb-3">
-    <div class="flex items-center justify-between mb-3">
-      <div>
-        <h1 class="text-xl font-bold tracking-tight text-gray-900">我的藏品庫</h1>
-        <p class="text-xs text-gray-500">模型、車仔、Re-ment & 幪面超人專用</p>
-      </div>
-      <div class="flex gap-2">
-        <button onclick="openBackupModal()" class="p-2 rounded-full bg-gray-100 text-gray-700 active:bg-gray-200" title="備份與匯出">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-        </button>
-        <button onclick="openFormModal()" class="flex items-center gap-1 bg-blue-600 text-white px-3.5 py-2 rounded-full text-sm font-semibold shadow-sm active:bg-blue-700">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-          新增
-        </button>
-      </div>
+<!-- 頂部導航與統計看板 -->
+<header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-gray-200 px-4 pt-3 pb-3">
+  <div class="flex items-center justify-between mb-3">
+    <div>
+      <h1 class="text-xl font-bold tracking-tight text-gray-900">我的藏品庫</h1>
+      <p class="text-xs text-gray-500">模型、車仔、Re-ment & 幪面超人專用</p>
     </div>
-
-    <!-- 4格數據摘要 -->
-    <div class="grid grid-cols-4 gap-2 bg-gray-50 p-2.5 rounded-xl border border-gray-200/80 text-center">
-      <div>
-        <div class="text-[10px] text-gray-500 font-medium">總投入 (HKD)</div>
-        <div id="stat-cost" class="text-sm font-bold text-gray-900 mt-0.5">$0</div>
-      </div>
-      <div>
-        <div class="text-[10px] text-gray-500 font-medium">目前估值</div>
-        <div id="stat-val" class="text-sm font-bold text-blue-600 mt-0.5">$0</div>
-      </div>
-      <div>
-        <div class="text-[10px] text-gray-500 font-medium">整體損益</div>
-        <div id="stat-pnl" class="text-sm font-bold text-emerald-600 mt-0.5">$0</div>
-      </div>
-      <div>
-        <div class="text-[10px] text-gray-500 font-medium">總數量</div>
-        <div id="stat-count" class="text-sm font-bold text-gray-900 mt-0.5">0</div>
-      </div>
-    </div>
-  </header>
-
-  <!-- 主頁面容器 -->
-  <main id="view-collection" class="px-4 pt-3">
-    <!-- 搜尋列與檢視切換 -->
-    <div class="flex gap-2 mb-3">
-      <div class="relative flex-1">
-        <input id="search-input" type="text" oninput="renderItems()" placeholder="搜尋名稱、系列、備註、條碼、位置..." class="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-      </div>
-      <button onclick="toggleViewMode()" id="btn-view-mode" class="p-2 bg-white border border-gray-200 rounded-xl text-gray-600 active:bg-gray-100" title="切換圖鑑/清單">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+    <div class="flex gap-2">
+      <button onclick="openBackupModal()" class="p-2 rounded-full bg-gray-100 text-gray-700 active:bg-gray-200" title="備份與匯出">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+      </button>
+      <button onclick="openFormModal()" class="flex items-center gap-1 bg-blue-600 text-white px-3.5 py-2 rounded-full text-sm font-semibold shadow-sm active:bg-blue-700">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        新增
       </button>
     </div>
-
-    <!-- 一級分類膠囊篩選 -->
-    <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
-      <button onclick="setCategory('ALL')" data-cat="ALL" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-gray-900 text-white whitespace-nowrap">全部藏品</button>
-      <button onclick="setCategory('玩具模型')" data-cat="玩具模型" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">玩具模型</button>
-      <button onclick="setCategory('Tomica車仔')" data-cat="Tomica車仔" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">Tomica車仔</button>
-      <button onclick="setCategory('Re-ment')" data-cat="Re-ment" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">Re-ment</button>
-      <button onclick="setCategory('幪面超人')" data-cat="幪面超人" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">幪面超人</button>
-      <button onclick="setCategory('預訂中')" data-cat="預訂中" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">預訂中</button>
-    </div>
-
-    <!-- 二級系列過濾膠囊 -->
-    <div class="flex gap-1.5 overflow-x-auto hide-scrollbar pb-3">
-      <button onclick="setSeriesFilter('ALL')" data-series="ALL" class="series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-blue-600 text-white whitespace-nowrap">全系列</button>
-      <button onclick="setSeriesFilter('Premium')" data-series="Premium" class="series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-white text-gray-500 border border-gray-200 whitespace-nowrap">Tomica Premium</button>
-      <button onclick="setSeriesFilter('Dream Tomica')" data-series="Dream Tomica" class="series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-white text-gray-500 border border-gray-200 whitespace-nowrap">Dream Tomica</button>
-      <button onclick="setSeriesFilter('普通車')" data-series="普通車" class="series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-white text-gray-500 border border-gray-200 whitespace-nowrap">普通紅盒車</button>
-      <button onclick="setSeriesFilter('真骨彫製法')" data-series="真骨彫製法" class="series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-white text-gray-500 border border-gray-200 whitespace-nowrap">真骨彫製法</button>
-    </div>
-
-    <!-- 藏品列表容器 -->
-    <div id="items-container" class="grid grid-cols-2 gap-3"></div>
-  </main>
-
-  <!-- 擺放位置管理頁面 -->
-  <main id="view-locations" class="px-4 pt-3 hidden">
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="text-base font-bold text-gray-800">擺放位置一覽 & 容量管理</h2>
-      <button onclick="openLocationModal()" class="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg">+ 新增位置</button>
-    </div>
-    <div id="locations-container" class="space-y-3"></div>
-  </main>
-
-  <!-- 底部 Tab Bar -->
-  <nav class="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-gray-200 flex justify-around py-2 z-30" style="padding-bottom: max(8px, env(safe-area-inset-bottom));">
-    <button onclick="switchTab('collection')" id="tab-collection" class="flex flex-col items-center text-blue-600">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-      <span class="text-[10px] font-semibold mt-0.5">藏品圖鑑</span>
-    </button>
-    <button onclick="switchTab('locations')" id="tab-locations" class="flex flex-col items-center text-gray-400">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-      <span class="text-[10px] font-semibold mt-0.5">擺放位置</span>
-    </button>
-  </nav>
-
-  <!-- 詳情檢視 Modal -->
-  <div id="detail-modal" class="fixed inset-0 z-50 bg-black/50 hidden flex items-end sm:items-center justify-center">
-    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-2xl max-h-[90vh] overflow-y-auto p-5">
-      <div id="detail-content"></div>
-    </div>
   </div>
 
-  <!-- 新增 / 編輯藏品 Modal -->
-  <div id="form-modal" class="fixed inset-0 z-50 bg-black/50 hidden flex items-end sm:items-center justify-center">
-    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-2xl max-h-[92vh] overflow-y-auto p-5">
-      <div class="flex justify-between items-center mb-3">
-        <h3 id="form-title" class="text-base font-bold">新增藏品</h3>
-        <button onclick="closeFormModal()" class="p-1.5 bg-gray-100 rounded-full text-gray-500">✕</button>
-      </div>
+  <!-- 4格數據摘要 -->
+  <div class="grid grid-cols-4 gap-2 bg-gray-50 p-2.5 rounded-xl border border-gray-200/80 text-center">
+    <div>
+      <div class="text-[10px] text-gray-500 font-medium">總投入 (HKD)</div>
+      <div id="stat-cost" class="text-sm font-bold text-gray-900 mt-0.5">$0</div>
+    </div>
+    <div>
+      <div class="text-[10px] text-gray-500 font-medium">目前估值</div>
+      <div id="stat-val" class="text-sm font-bold text-blue-600 mt-0.5">$0</div>
+    </div>
+    <div>
+      <div class="text-[10px] text-gray-500 font-medium">整體損益</div>
+      <div id="stat-pnl" class="text-sm font-bold text-emerald-600 mt-0.5">$0</div>
+    </div>
+    <div>
+      <div class="text-[10px] text-gray-500 font-medium">總數量</div>
+      <div id="stat-count" class="text-sm font-bold text-gray-900 mt-0.5">0</div>
+    </div>
+  </div>
+</header>
 
-      <form id="item-form" onsubmit="saveItem(event, false)" class="space-y-3 text-sm">
-        <input type="hidden" id="f-id" />
+<!-- 主頁面容器 -->
+<main id="view-collection" class="px-4 pt-3">
+  <!-- 搜尋列與檢視切換 -->
+  <div class="flex gap-2 mb-3">
+    <div class="relative flex-1">
+      <input id="search-input" type="text" oninput="renderItems()" placeholder="搜尋名稱、系列、備註、條碼、位置..." class="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    </div>
+    <button onclick="toggleViewMode()" id="btn-view-mode" class="p-2 bg-white border border-gray-200 rounded-xl text-gray-600 active:bg-gray-100" title="切換圖鑑/清單">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+    </button>
+  </div>
 
-        <!-- 相片上傳 -->
-        <div class="flex items-center gap-3 bg-gray-50 p-2.5 rounded-xl border border-dashed border-gray-300">
-          <img id="f-img-preview" src="" class="w-14 h-14 rounded-lg object-cover bg-gray-200 hidden" />
-          <div class="flex-1">
+  <!-- 一級分類膠囊篩選 -->
+  <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+    <button onclick="setCategory('ALL')" data-cat="ALL" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-gray-900 text-white whitespace-nowrap">全部藏品</button>
+    <button onclick="setCategory('玩具模型')" data-cat="玩具模型" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">玩具模型</button>
+    <button onclick="setCategory('Tomica車仔')" data-cat="Tomica車仔" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">Tomica車仔</button>
+    <button onclick="setCategory('Re-ment')" data-cat="Re-ment" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">Re-ment</button>
+    <button onclick="setCategory('幪面超人')" data-cat="幪面超人" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">幪面超人</button>
+    <button onclick="setCategory('預訂中')" data-cat="預訂中" class="cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap">預訂中</button>
+  </div>
+
+  <!-- 二級系列過濾膠囊 -->
+  <div class="flex gap-1.5 overflow-x-auto hide-scrollbar pb-3">
+    <button onclick="setSeriesFilter('ALL')" data-series="ALL" class="series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-blue-600 text-white whitespace-nowrap">全系列</button>
+    <button onclick="setSeriesFilter('Premium')" data-series="Premium" class="series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-white text-gray-500 border border-gray-200 whitespace-nowrap">Tomica Premium</button>
+    <button onclick="setSeriesFilter('Dream Tomica')" data-series="Dream Tomica" class="series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-white text-gray-500 border border-gray-200 whitespace-nowrap">Dream Tomica</button>
+    <button onclick="setSeriesFilter('普通車')" data-series="普通車" class="series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-white text-gray-500 border border-gray-200 whitespace-nowrap">普通紅盒車</button>
+    <button onclick="setSeriesFilter('真骨彫製法')" data-series="真骨彫製法" class="series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-white text-gray-500 border border-gray-200 whitespace-nowrap">真骨彫製法</button>
+  </div>
+
+  <!-- 藏品列表容器 -->
+  <div id="items-container" class="grid grid-cols-2 gap-3"></div>
+</main>
+
+<!-- 擺放位置管理頁面 -->
+<main id="view-locations" class="px-4 pt-3 hidden">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-base font-bold text-gray-800">擺放位置一覽 & 容量管理</h2>
+    <button onclick="openLocationModal()" class="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg">+ 新增位置</button>
+  </div>
+  <div id="locations-container" class="space-y-3"></div>
+</main>
+
+<!-- 底部 Tab Bar -->
+<nav class="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-gray-200 flex justify-around py-2 z-30" style="padding-bottom: max(8px, env(safe-area-inset-bottom));">
+  <button onclick="switchTab('collection')" id="tab-collection" class="flex flex-col items-center text-blue-600">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+    <span class="text-[10px] font-semibold mt-0.5">藏品圖鑑</span>
+  </button>
+  <button onclick="switchTab('locations')" id="tab-locations" class="flex flex-col items-center text-gray-400">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+    <span class="text-[10px] font-semibold mt-0.5">擺放位置</span>
+  </button>
+</nav>
+
+<!-- 詳情檢視 Modal -->
+<div id="detail-modal" class="fixed inset-0 z-50 bg-black/50 hidden flex items-end sm:items-center justify-center">
+  <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-2xl max-h-[90vh] overflow-y-auto p-5">
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<!-- 新增 / 編輯藏品 Modal -->
+<div id="form-modal" class="fixed inset-0 z-50 bg-black/50 hidden flex items-end sm:items-center justify-center">
+  <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-2xl max-h-[92vh] overflow-y-auto p-5">
+    <div class="flex justify-between items-center mb-3">
+      <h3 id="form-title" class="text-base font-bold">新增藏品</h3>
+      <button onclick="closeFormModal()" class="p-1.5 bg-gray-100 rounded-full text-gray-500">✕</button>
+    </div>
+
+    <form id="item-form" onsubmit="saveItem(event, false)" class="space-y-3 text-sm">
+      <input type="hidden" id="f-id" />
+
+      <!-- 相片上傳 + 預覽 + Google Lens -->
+      <div class="bg-gray-50 p-3 rounded-xl border border-dashed border-gray-300">
+        <div class="flex items-start gap-3">
+          <img id="f-img-preview" src="" class="w-20 h-20 rounded-lg object-cover bg-gray-200 hidden shrink-0" />
+          <div class="flex-1 min-w-0">
             <label class="block font-semibold text-gray-700 text-xs mb-1">藏品相片</label>
-            <input type="file" accept="image/*" onchange="handleImageUpload(event)" class="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700" />
-          </div>
-        </div>
-
-        <!-- 大分類快速點選膠囊 -->
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1.5">大分類 *</label>
-          <div class="grid grid-cols-4 gap-1.5" id="category-chips">
-            <button type="button" onclick="selectChip('category', '玩具模型', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">玩具模型</button>
-            <button type="button" onclick="selectChip('category', 'Tomica車仔', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">Tomica</button>
-            <button type="button" onclick="selectChip('category', 'Re-ment', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">Re-ment</button>
-            <button type="button" onclick="selectChip('category', '幪面超人', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">幪面超人</button>
-          </div>
-          <input type="hidden" id="f-category" value="玩具模型" />
-        </div>
-
-        <!-- 個人入手狀況 -->
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1.5">入手狀況</label>
-          <div class="grid grid-cols-4 gap-1.5" id="status-chips">
-            <button type="button" onclick="selectChip('status', '已入手', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">已入手</button>
-            <button type="button" onclick="selectChip('status', '預訂中', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">預訂中</button>
-            <button type="button" onclick="selectChip('status', '想買', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">想買</button>
-            <button type="button" onclick="selectChip('status', '已出售', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">已出售</button>
-          </div>
-          <input type="hidden" id="f-status" value="已入手" />
-        </div>
-
-        <!-- 名稱 / 掃描 Barcode -->
-        <div>
-          <div class="flex items-center justify-between mb-1">
-            <label class="block text-xs font-semibold text-gray-600">編號 / 名稱 *</label>
-            <button type="button" onclick="startBarcodeScan()" class="text-xs text-blue-600 font-semibold bg-blue-50 px-2.5 py-1 rounded-lg flex items-center gap-1">
-              <span>📷</span> 掃描 Barcode
-            </button>
-          </div>
-          <input id="f-name" required type="text" placeholder="例如：S.H.Figuarts 真骨彫 幪面超人..." class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-
-          <div id="scanner-container" class="hidden mt-2 p-2 bg-black rounded-xl relative">
-            <div id="reader" class="w-full overflow-hidden rounded-lg"></div>
-            <button type="button" onclick="stopBarcodeScan()" class="absolute top-3 right-3 z-10 bg-white/90 text-black px-3 py-1 rounded-full text-xs font-bold shadow">關閉相機</button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2.5">
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">品牌 / 系列</label>
-            <input id="f-series" type="text" placeholder="真骨彫製法 / Premium" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1.5">版本</label>
-            <div class="grid grid-cols-2 gap-1" id="region-chips">
-              <button type="button" onclick="selectChip('region', '日版', this)" class="py-2 px-1 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">日版</button>
-              <button type="button" onclick="selectChip('region', '港行版', this)" class="py-2 px-1 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">港行版</button>
-            </div>
-            <input type="hidden" id="f-region" value="日版" />
-          </div>
-        </div>
-
-        <!-- 價錢快速點選（福利快捷鍵已修復加入） -->
-        <div class="grid grid-cols-2 gap-2.5">
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">實際入手價 (HKD)</label>
-            <input id="f-cost" type="number" step="0.1" placeholder="0" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-            <div class="flex gap-1 mt-1.5">
-              <button type="button" onclick="document.getElementById('f-cost').value='0'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$0</button>
-              <button type="button" onclick="document.getElementById('f-cost').value='38'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$38</button>
-              <button type="button" onclick="document.getElementById('f-cost').value='350'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$350</button>
-              <button type="button" onclick="document.getElementById('f-cost').value='550'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$550</button>
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">二手估值 (HKD)</label>
-            <input id="f-val" type="number" step="0.1" placeholder="0" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-            <div class="flex gap-1 mt-1.5">
-              <button type="button" onclick="document.getElementById('f-val').value='0'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$0</button>
-              <button type="button" onclick="document.getElementById('f-val').value='363.44'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$363</button>
-              <button type="button" onclick="document.getElementById('f-val').value='550'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$550</button>
-              <button type="button" onclick="document.getElementById('f-val').value='1100'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$1100</button>
+            <input type="file" accept="image/*" capture="environment" onchange="handleImageUpload(event)" class="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700" />
+            
+            <!-- 圖片操作按鈕（有圖先顯示） -->
+            <div id="image-actions" class="hidden mt-2.5 flex flex-wrap gap-2">
+              <button type="button" onclick="searchWithGoogleLens()" class="text-xs font-semibold bg-indigo-600 text-white px-3 py-1.5 rounded-lg active:bg-indigo-700 flex items-center gap-1">
+                🔍 Google Lens 搜尋
+              </button>
+              <button type="button" onclick="pasteNameFromClipboard()" class="text-xs font-semibold bg-emerald-600 text-white px-3 py-1.5 rounded-lg active:bg-emerald-700 flex items-center gap-1">
+                📋 貼上名稱
+              </button>
             </div>
           </div>
         </div>
-
-        <div class="grid grid-cols-3 gap-2">
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">盒況</label>
-            <select id="f-box" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl">
-              <option value="良好">良好</option>
-              <option value="全新未開">全新未開</option>
-              <option value="有損">有損</option>
-              <option value="無盒">無盒</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">販售類型</label>
-            <select id="f-saleType" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl">
-              <option value="一般">一般</option>
-              <option value="魂限">魂限</option>
-              <option value="Premium">Premium</option>
-              <option value="會場限定">會場限定</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">擺放位置</label>
-            <input id="f-location" type="text" placeholder="如 A-1" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2.5">
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">官方發售日</label>
-            <input id="f-releaseDate" type="text" placeholder="2027年2月" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-600 mb-1">購入管道</label>
-            <input id="f-channel" type="text" placeholder="P-Bandai / 福利模型" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">備註 / 附屬配件</label>
-          <textarea id="f-notes" rows="1" placeholder="再販、特價標籤等..." class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl"></textarea>
-        </div>
-
-        <!-- 雙按鈕：普通儲存 vs 連續新增 -->
-        <div class="flex gap-2 pt-1">
-          <button type="submit" class="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-md active:bg-blue-700 text-xs">儲存並關閉</button>
-          <button type="button" onclick="saveItem(event, true)" class="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-md active:bg-emerald-700 text-xs">💾 儲存並繼續新增下一件</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 備份與匯出 Modal -->
-  <div id="backup-modal" class="fixed inset-0 z-50 bg-black/50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-3">
-      <div class="flex justify-between items-center">
-        <h3 class="text-base font-bold">資料備份與同步</h3>
-        <button onclick="document.getElementById('backup-modal').classList.add('hidden')" class="text-gray-400">✕</button>
+        <p id="lens-tip" class="hidden text-[11px] text-gray-500 mt-2 leading-relaxed">
+          已開啟 Google Lens。如果成功複製圖片，可直接喺 Lens 頁面貼上（手機長按 → 貼上）。
+        </p>
       </div>
-      <p class="text-xs text-gray-500">支援從 Google Sheets 匯出嘅 JSON 備份檔直接還原同步。</p>
-      <button onclick="exportJSON()" class="w-full py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl">下載完整備份檔 (JSON)</button>
-      <label class="block w-full py-2.5 bg-emerald-600 text-white text-center text-sm font-semibold rounded-xl cursor-pointer">
-        📥 匯入 / 還原 JSON 備份檔
-        <input type="file" accept=".json" onchange="importJSON(event)" class="hidden" />
-      </label>
-    </div>
+
+      <!-- 大分類快速點選膠囊 -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1.5">大分類 *</label>
+        <div class="grid grid-cols-4 gap-1.5" id="category-chips">
+          <button type="button" onclick="selectChip('category', '玩具模型', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">玩具模型</button>
+          <button type="button" onclick="selectChip('category', 'Tomica車仔', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">Tomica</button>
+          <button type="button" onclick="selectChip('category', 'Re-ment', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">Re-ment</button>
+          <button type="button" onclick="selectChip('category', '幪面超人', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">幪面超人</button>
+        </div>
+        <input type="hidden" id="f-category" value="玩具模型" />
+      </div>
+
+      <!-- 個人入手狀況 -->
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1.5">入手狀況</label>
+        <div class="grid grid-cols-4 gap-1.5" id="status-chips">
+          <button type="button" onclick="selectChip('status', '已入手', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">已入手</button>
+          <button type="button" onclick="selectChip('status', '預訂中', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">預訂中</button>
+          <button type="button" onclick="selectChip('status', '想買', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">想買</button>
+          <button type="button" onclick="selectChip('status', '已出售', this)" class="py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">已出售</button>
+        </div>
+        <input type="hidden" id="f-status" value="已入手" />
+      </div>
+
+      <!-- 名稱 / 掃描 Barcode -->
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="block text-xs font-semibold text-gray-600">編號 / 名稱 *</label>
+          <button type="button" onclick="startBarcodeScan()" class="text-xs text-blue-600 font-semibold bg-blue-50 px-2.5 py-1 rounded-lg flex items-center gap-1">
+            <span>📷</span> 掃描 Barcode
+          </button>
+        </div>
+        <input id="f-name" required type="text" placeholder="例如：S.H.Figuarts 真骨彫 幪面超人..." class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+
+        <div id="scanner-container" class="hidden mt-2 p-2 bg-black rounded-xl relative">
+          <div id="reader" class="w-full overflow-hidden rounded-lg"></div>
+          <button type="button" onclick="stopBarcodeScan()" class="absolute top-3 right-3 z-10 bg-white/90 text-black px-3 py-1 rounded-full text-xs font-bold shadow">關閉相機</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">品牌 / 系列</label>
+          <input id="f-series" type="text" placeholder="真骨彫製法 / Premium" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+          <!-- 常見系列快捷鍵 -->
+          <div class="flex flex-wrap gap-1.5 mt-1.5">
+            <button type="button" onclick="quickFillSeries('Premium')" class="text-[11px] px-2 py-1 rounded-md bg-blue-50 text-blue-700 font-medium">Premium</button>
+            <button type="button" onclick="quickFillSeries('Dream Tomica')" class="text-[11px] px-2 py-1 rounded-md bg-blue-50 text-blue-700 font-medium">Dream Tomica</button>
+            <button type="button" onclick="quickFillSeries('普通紅盒')" class="text-[11px] px-2 py-1 rounded-md bg-blue-50 text-blue-700 font-medium">普通紅盒</button>
+            <button type="button" onclick="quickFillSeries('真骨彫製法')" class="text-[11px] px-2 py-1 rounded-md bg-blue-50 text-blue-700 font-medium">真骨彫</button>
+            <button type="button" onclick="quickFillSeries('S.H.Figuarts')" class="text-[11px] px-2 py-1 rounded-md bg-blue-50 text-blue-700 font-medium">SHF</button>
+            <button type="button" onclick="quickFillSeries('Re-ment')" class="text-[11px] px-2 py-1 rounded-md bg-blue-50 text-blue-700 font-medium">Re-ment</button>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1.5">版本</label>
+          <div class="grid grid-cols-2 gap-1" id="region-chips">
+            <button type="button" onclick="selectChip('region', '日版', this)" class="py-2 px-1 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">日版</button>
+            <button type="button" onclick="selectChip('region', '港行版', this)" class="py-2 px-1 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700">港行版</button>
+          </div>
+          <input type="hidden" id="f-region" value="日版" />
+        </div>
+      </div>
+
+      <!-- 價錢快速點選 -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">實際入手價 (HKD)</label>
+          <input id="f-cost" type="number" step="0.1" placeholder="0" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+          <div class="flex gap-1 mt-1.5">
+            <button type="button" onclick="document.getElementById('f-cost').value='0'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$0</button>
+            <button type="button" onclick="document.getElementById('f-cost').value='38'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$38</button>
+            <button type="button" onclick="document.getElementById('f-cost').value='350'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$350</button>
+            <button type="button" onclick="document.getElementById('f-cost').value='550'" class="flex-1 text-[11px] font-bold bg-gray-100 hover:bg-gray-200 py-1 rounded text-gray-700">$550</button>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">二手估值 (HKD)</label>
+          <input id="f-val" type="number" step="0.1" placeholder="0" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+          <div class="flex gap-1 mt-1.5">
+            <button type="button" onclick="document.getElementById('f-val').value='0'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$0</button>
+            <button type="button" onclick="document.getElementById('f-val').value='363.44'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$363</button>
+            <button type="button" onclick="document.getElementById('f-val').value='550'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$550</button>
+            <button type="button" onclick="document.getElementById('f-val').value='1100'" class="flex-1 text-[11px] font-bold bg-blue-50 hover:bg-blue-100 py-1 rounded text-blue-700">$1100</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">盒況</label>
+          <select id="f-box" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl">
+            <option value="良好">良好</option>
+            <option value="全新未開">全新未開</option>
+            <option value="有損">有損</option>
+            <option value="無盒">無盒</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">販售類型</label>
+          <select id="f-saleType" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl">
+            <option value="一般">一般</option>
+            <option value="魂限">魂限</option>
+            <option value="Premium">Premium</option>
+            <option value="會場限定">會場限定</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">擺放位置</label>
+          <input id="f-location" type="text" placeholder="如 A-1" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">官方發售日</label>
+          <input id="f-releaseDate" type="text" placeholder="2027年2月" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">購入管道</label>
+          <input id="f-channel" type="text" placeholder="P-Bandai / 福利模型" class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">備註 / 附屬配件</label>
+        <textarea id="f-notes" rows="1" placeholder="再販、特價標籤等..." class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl"></textarea>
+      </div>
+
+      <!-- 雙按鈕：普通儲存 vs 連續新增 -->
+      <div class="flex gap-2 pt-1">
+        <button type="submit" class="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-md active:bg-blue-700 text-xs">儲存並關閉</button>
+        <button type="button" onclick="saveItem(event, true)" class="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-md active:bg-emerald-700 text-xs">💾 儲存並繼續新增下一件</button>
+      </div>
+    </form>
   </div>
+</div>
 
-  <script>
-    let items = JSON.parse(localStorage.getItem('icollect_items_v4')) || [];
-    let locations = JSON.parse(localStorage.getItem('icollect_locs_v4')) || [
-      { code: 'A-1', desc: '書櫃上層左', type: '書櫃', current: 5, max: 12, note: '' },
-      { code: 'B-1', desc: '展示櫃中層', type: '展示櫃', current: 8, max: 15, note: '燈光良好' },
-      { code: 'C-1', desc: '抽屜收納盒1', type: '收納盒', current: 20, max: 30, note: '' }
-    ];
-    let currentCategory = 'ALL';
-    let currentSeries = 'ALL';
-    let isGridView = true;
-    let tempBase64Image = '';
-    let html5QrCode = null;
+<!-- 備份與匯出 Modal -->
+<div id="backup-modal" class="fixed inset-0 z-50 bg-black/50 hidden flex items-center justify-center p-4">
+  <div class="bg-white w-full max-w-sm rounded-2xl p-5 space-y-3">
+    <div class="flex justify-between items-center">
+      <h3 class="text-base font-bold">資料備份與同步</h3>
+      <button onclick="document.getElementById('backup-modal').classList.add('hidden')" class="text-gray-400">✕</button>
+    </div>
+    <p class="text-xs text-gray-500">支援從 Google Sheets 匯出嘅 JSON 備份檔直接還原同步。</p>
+    <button onclick="exportJSON()" class="w-full py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl">下載完整備份檔 (JSON)</button>
+    <label class="block w-full py-2.5 bg-emerald-600 text-white text-center text-sm font-semibold rounded-xl cursor-pointer">
+      📥 匯入 / 還原 JSON 備份檔
+      <input type="file" accept=".json" onchange="importJSON(event)" class="hidden" />
+    </label>
+  </div>
+</div>
 
-    function saveToStorage() {
-      localStorage.setItem('icollect_items_v4', JSON.stringify(items));
-      localStorage.setItem('icollect_locs_v4', JSON.stringify(locations));
+<script>
+let items = JSON.parse(localStorage.getItem('icollect_items_v4')) || [];
+let locations = JSON.parse(localStorage.getItem('icollect_locs_v4')) || [
+  { code: 'A-1', desc: '書櫃上層左', type: '書櫃', current: 5, max: 12, note: '' },
+  { code: 'B-1', desc: '展示櫃中層', type: '展示櫃', current: 8, max: 15, note: '燈光良好' },
+  { code: 'C-1', desc: '抽屜收納盒1', type: '收納盒', current: 20, max: 30, note: '' }
+];
+let currentCategory = 'ALL';
+let currentSeries = 'ALL';
+let isGridView = true;
+let tempBase64Image = '';
+let html5QrCode = null;
+
+function saveToStorage() {
+  localStorage.setItem('icollect_items_v4', JSON.stringify(items));
+  localStorage.setItem('icollect_locs_v4', JSON.stringify(locations));
+}
+
+function setCategory(cat) {
+  currentCategory = cat;
+  document.querySelectorAll('.cat-pill').forEach(btn => {
+    if (btn.dataset.cat === cat) {
+      btn.className = 'cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-gray-900 text-white whitespace-nowrap';
+    } else {
+      btn.className = 'cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap';
     }
+  });
+  renderItems();
+}
 
-    function setCategory(cat) {
-      currentCategory = cat;
-      document.querySelectorAll('.cat-pill').forEach(btn => {
-        if (btn.dataset.cat === cat) {
-          btn.className = 'cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-gray-900 text-white whitespace-nowrap';
-        } else {
-          btn.className = 'cat-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white text-gray-600 border border-gray-200 whitespace-nowrap';
-        }
-      });
-      renderItems();
+function setSeriesFilter(series) {
+  currentSeries = series;
+  document.querySelectorAll('.series-pill').forEach(btn => {
+    if (btn.dataset.series === series) {
+      btn.className = 'series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-blue-600 text-white whitespace-nowrap';
+    } else {
+      btn.className = 'series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-white text-gray-500 border border-gray-200 whitespace-nowrap';
     }
+  });
+  renderItems();
+}
 
-    function setSeriesFilter(series) {
-      currentSeries = series;
-      document.querySelectorAll('.series-pill').forEach(btn => {
-        if (btn.dataset.series === series) {
-          btn.className = 'series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-blue-600 text-white whitespace-nowrap';
-        } else {
-          btn.className = 'series-pill px-3 py-1 rounded-full text-[11px] font-medium bg-white text-gray-500 border border-gray-200 whitespace-nowrap';
-        }
-      });
-      renderItems();
+function toggleViewMode() {
+  isGridView = !isGridView;
+  document.getElementById('items-container').className = isGridView ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2.5';
+  renderItems();
+}
+
+function selectChip(type, val, btn) {
+  document.getElementById('f-' + type).value = val;
+  const parent = btn.parentElement;
+  Array.from(parent.children).forEach(child => {
+    child.className = 'py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700';
+  });
+  btn.className = 'py-1.5 px-2 text-xs font-bold rounded-lg border border-blue-600 bg-blue-600 text-white';
+}
+
+function initChips() {
+  const catBtn = document.querySelector('#category-chips button');
+  if (catBtn) selectChip('category', '玩具模型', catBtn);
+  const statBtn = document.querySelector('#status-chips button');
+  if (statBtn) selectChip('status', '已入手', statBtn);
+  const regBtn = document.querySelector('#region-chips button');
+  if (regBtn) selectChip('region', '日版', regBtn);
+}
+
+function quickFillSeries(val) {
+  document.getElementById('f-series').value = val;
+}
+
+function renderItems() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const filtered = items.filter(item => {
+    const matchCat = currentCategory === 'ALL' || item.category === currentCategory || item.status === currentCategory;
+    const matchSeries = currentSeries === 'ALL' || (item.series && item.series.toLowerCase().includes(currentSeries.toLowerCase()));
+    const matchQuery = !q || [item.name, item.series, item.notes, item.location, item.channel].some(f => (f || '').toLowerCase().includes(q));
+    return matchCat && matchSeries && matchQuery;
+  });
+
+  const totalCost = filtered.reduce((sum, i) => sum + (Number(i.cost) || 0), 0);
+  const totalVal = filtered.reduce((sum, i) => sum + (Number(i.val) || 0), 0);
+  const pnl = totalVal - totalCost;
+
+  document.getElementById('stat-cost').textContent = '$' + totalCost.toLocaleString();
+  document.getElementById('stat-val').textContent = '$' + totalVal.toLocaleString();
+  const pnlEl = document.getElementById('stat-pnl');
+  pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toLocaleString();
+  pnlEl.className = 'text-sm font-bold mt-0.5 ' + (pnl >= 0 ? 'text-emerald-600' : 'text-rose-600');
+  document.getElementById('stat-count').textContent = filtered.length;
+
+  const container = document.getElementById('items-container');
+  container.innerHTML = filtered.map(item => {
+    const badgeColor = item.status === '預訂中' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800';
+    const imgHtml = item.image
+      ? `<img src="${item.image}" class="${isGridView ? 'w-full h-32' : 'w-20 h-20'} object-cover bg-gray-100" />`
+      : `<div class="${isGridView ? 'w-full h-32' : 'w-20 h-20 shrink-0'} bg-gradient-to-br from-slate-100 to-slate-200 flex flex-col items-center justify-center text-slate-400 p-2 text-center">
+          <span class="text-lg font-bold">${item.category === 'Tomica車仔' ? '🚗' : item.category === 'Re-ment' ? '🍱' : '🤖'}</span>
+          <span class="text-[10px] mt-1 line-clamp-1">${item.region || '日版'}</span>
+        </div>`;
+
+    if (isGridView) {
+      return `
+        <div onclick="openDetail('${item.id}')" class="bg-white rounded-2xl overflow-hidden border border-gray-200/80 shadow-sm active:scale-[0.98] transition-transform flex flex-col">
+          <div class="relative">
+            ${imgHtml}
+            <span class="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColor}">${item.status || '已入手'}</span>
+            ${item.saleType && item.saleType !== '一般' ? `<span class="absolute top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-600 text-white">${item.saleType}</span>` : ''}
+          </div>
+          <div class="p-3 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="text-[10px] text-blue-600 font-semibold truncate">${item.series || item.category}</div>
+              <h3 class="text-xs font-bold text-gray-900 line-clamp-2 mt-0.5 leading-snug">${item.name}</h3>
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px]">
+              <span class="text-gray-500">入手 <b class="text-gray-800">$${item.cost || 0}</b></span>
+              <span class="text-blue-600 font-semibold">估 $${item.val || 0}</span>
+            </div>
+          </div>
+        </div>`;
+    } else {
+      return `
+        <div onclick="openDetail('${item.id}')" class="bg-white rounded-2xl p-2.5 border border-gray-200/80 shadow-sm flex gap-3 items-center active:bg-gray-50">
+          <div class="rounded-xl overflow-hidden shrink-0">${imgHtml}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeColor}">${item.status}</span>
+              <span class="text-[10px] text-gray-500 truncate">${item.series || ''}</span>
+            </div>
+            <h3 class="text-xs font-bold text-gray-900 truncate mt-1">${item.name}</h3>
+            <div class="flex gap-3 mt-1.5 text-[11px] text-gray-500">
+              <span>入手: <b class="text-gray-800">$${item.cost || 0}</b></span>
+              <span>估值: <b class="text-blue-600">$${item.val || 0}</b></span>
+            </div>
+          </div>
+        </div>`;
     }
+  }).join('');
+}
 
-    function toggleViewMode() {
-      isGridView = !isGridView;
-      document.getElementById('items-container').className = isGridView ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2.5';
-      renderItems();
-    }
+function openDetail(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  const pnl = (Number(item.val) || 0) - (Number(item.cost) || 0);
+  document.getElementById('detail-content').innerHTML = `
+    <div class="flex justify-between items-start mb-3">
+      <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">${item.category} · ${item.region || '日版'}</span>
+      <button onclick="document.getElementById('detail-modal').classList.add('hidden')" class="p-1.5 bg-gray-100 rounded-full text-gray-500">✕</button>
+    </div>
+    ${item.image ? `<img src="${item.image}" class="w-full h-56 object-contain bg-gray-50 rounded-2xl mb-3 border border-gray-100" />` : ''}
+    <h2 class="text-lg font-bold text-gray-900 leading-snug">${item.name}</h2>
+    <p class="text-xs text-gray-500 mt-1">${item.series || ''}</p>
 
-    function selectChip(type, val, btn) {
-      document.getElementById(`f-${type}`).value = val;
-      const parent = btn.parentElement;
-      Array.from(parent.children).forEach(child => {
-        child.className = 'py-1.5 px-2 text-xs font-bold rounded-lg border border-gray-200 bg-gray-50 text-gray-700';
-      });
-      btn.className = 'py-1.5 px-2 text-xs font-bold rounded-lg border border-blue-600 bg-blue-600 text-white';
-    }
+    <div class="grid grid-cols-3 gap-2 my-4 bg-gray-50 p-3 rounded-2xl text-center">
+      <div><div class="text-[10px] text-gray-500">實際入手價</div><div class="text-sm font-bold">$${item.cost || 0}</div></div>
+      <div><div class="text-[10px] text-gray-500">二手估值</div><div class="text-sm font-bold text-blue-600">$${item.val || 0}</div></div>
+      <div><div class="text-[10px] text-gray-500">帳面損益</div><div class="text-sm font-bold ${pnl >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${pnl >= 0 ? '+' : ''}$${pnl}</div></div>
+    </div>
 
-    function initChips() {
-      const catBtn = document.querySelector('#category-chips button');
-      if (catBtn) selectChip('category', '玩具模型', catBtn);
-      const statBtn = document.querySelector('#status-chips button');
-      if (statBtn) selectChip('status', '已入手', statBtn);
-      const regBtn = document.querySelector('#region-chips button');
-      if (regBtn) selectChip('region', '日版', regBtn);
-    }
+    <div class="space-y-2 text-xs text-gray-700 border-t border-gray-100 pt-3">
+      <div class="flex justify-between"><span class="text-gray-400">入手狀況</span><span class="font-semibold">${item.status || '-'}</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">販售類型</span><span class="font-semibold">${item.saleType || '-'}</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">盒況</span><span class="font-semibold">${item.box || '-'}</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">擺放位置</span><span class="font-semibold">${item.location || '未設定'}</span></div>
+      <div class="flex justify-between"><span class="text-gray-400">發售日 / 管道</span><span class="font-semibold">${item.releaseDate || '-'} / ${item.channel || '-'}</span></div>
+      ${item.notes ? `<div class="bg-amber-50/70 p-2.5 rounded-xl text-gray-700 mt-2"><b>備註：</b>${item.notes}</div>` : ''}
+    </div>
 
-    function renderItems() {
-      const q = document.getElementById('search-input').value.toLowerCase();
-      const filtered = items.filter(item => {
-        const matchCat = currentCategory === 'ALL' || item.category === currentCategory || item.status === currentCategory;
-        const matchSeries = currentSeries === 'ALL' || (item.series && item.series.toLowerCase().includes(currentSeries.toLowerCase()));
-        const matchQuery = !q || [item.name, item.series, item.notes, item.location, item.channel].some(f => (f || '').toLowerCase().includes(q));
-        return matchCat && matchSeries && matchQuery;
-      });
+    <div class="flex gap-2 mt-5">
+      <button onclick="editItem('${item.id}')" class="flex-1 py-2.5 bg-gray-900 text-white text-xs font-bold rounded-xl">編輯資料</button>
+      <button onclick="deleteItem('${item.id}')" class="px-4 py-2.5 bg-rose-50 text-rose-600 text-xs font-bold rounded-xl">刪除</button>
+    </div>
+  `;
+  document.getElementById('detail-modal').classList.remove('hidden');
+}
 
-      const totalCost = filtered.reduce((sum, i) => sum + (Number(i.cost) || 0), 0);
-      const totalVal = filtered.reduce((sum, i) => sum + (Number(i.val) || 0), 0);
-      const pnl = totalVal - totalCost;
+function openFormModal() {
+  document.getElementById('form-title').textContent = '新增藏品';
+  document.getElementById('item-form').reset();
+  document.getElementById('f-id').value = '';
+  tempBase64Image = '';
+  document.getElementById('f-img-preview').classList.add('hidden');
+  document.getElementById('image-actions').classList.add('hidden');
+  document.getElementById('lens-tip').classList.add('hidden');
+  initChips();
+  document.getElementById('form-modal').classList.remove('hidden');
+}
 
-      document.getElementById('stat-cost').textContent = `$${totalCost.toLocaleString()}`;
-      document.getElementById('stat-val').textContent = `$${totalVal.toLocaleString()}`;
-      const pnlEl = document.getElementById('stat-pnl');
-      pnlEl.textContent = `${pnl >= 0 ? '+' : ''}$${pnl.toLocaleString()}`;
-      pnlEl.className = `text-sm font-bold mt-0.5 ${pnl >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
-      document.getElementById('stat-count').textContent = filtered.length;
+function closeFormModal() {
+  stopBarcodeScan();
+  document.getElementById('form-modal').classList.add('hidden');
+}
 
-      const container = document.getElementById('items-container');
-      container.innerHTML = filtered.map(item => {
-        const badgeColor = item.status === '預訂中' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800';
-        const imgHtml = item.image
-          ? `<img src="${item.image}" class="${isGridView ? 'w-full h-32' : 'w-20 h-20'} object-cover bg-gray-100" />`
-          : `<div class="${isGridView ? 'w-full h-32' : 'w-20 h-20 shrink-0'} bg-gradient-to-br from-slate-100 to-slate-200 flex flex-col items-center justify-center text-slate-400 p-2 text-center">
-               <span class="text-lg font-bold">${item.category === 'Tomica車仔' ? '🚗' : item.category === 'Re-ment' ? '🍱' : '🤖'}</span>
-               <span class="text-[10px] mt-1 line-clamp-1">${item.region || '日版'}</span>
-             </div>`;
+function editItem(id) {
+  document.getElementById('detail-modal').classList.add('hidden');
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  document.getElementById('form-title').textContent = '編輯藏品';
+  document.getElementById('f-id').value = item.id;
+  document.getElementById('f-category').value = item.category;
+  document.getElementById('f-status').value = item.status || '已入手';
+  document.getElementById('f-name').value = item.name;
+  document.getElementById('f-series').value = item.series || '';
+  document.getElementById('f-region').value = item.region || '日版';
+  document.getElementById('f-cost').value = item.cost || '';
+  document.getElementById('f-val').value = item.val || '';
+  document.getElementById('f-box').value = item.box || '良好';
+  document.getElementById('f-saleType').value = item.saleType || '一般';
+  document.getElementById('f-location').value = item.location || '';
+  document.getElementById('f-releaseDate').value = item.releaseDate || '';
+  document.getElementById('f-channel').value = item.channel || '';
+  document.getElementById('f-notes').value = item.notes || '';
+  tempBase64Image = item.image || '';
+  const preview = document.getElementById('f-img-preview');
+  if (tempBase64Image) {
+    preview.src = tempBase64Image;
+    preview.classList.remove('hidden');
+    document.getElementById('image-actions').classList.remove('hidden');
+  } else {
+    preview.classList.add('hidden');
+    document.getElementById('image-actions').classList.add('hidden');
+  }
+  document.getElementById('lens-tip').classList.add('hidden');
+  document.getElementById('form-modal').classList.remove('hidden');
+}
 
-        if (isGridView) {
-          return `
-            <div onclick="openDetail('${item.id}')" class="bg-white rounded-2xl overflow-hidden border border-gray-200/80 shadow-sm active:scale-[0.98] transition-transform flex flex-col">
-              <div class="relative">
-                ${imgHtml}
-                <span class="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColor}">${item.status || '已入手'}</span>
-                ${item.saleType && item.saleType !== '一般' ? `<span class="absolute top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-600 text-white">${item.saleType}</span>` : ''}
-              </div>
-              <div class="p-3 flex-1 flex flex-col justify-between">
-                <div>
-                  <div class="text-[10px] text-blue-600 font-semibold truncate">${item.series || item.category}</div>
-                  <h3 class="text-xs font-bold text-gray-900 line-clamp-2 mt-0.5 leading-snug">${item.name}</h3>
-                </div>
-                <div class="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px]">
-                  <span class="text-gray-500">入手 <b class="text-gray-800">$${item.cost || 0}</b></span>
-                  <span class="text-blue-600 font-semibold">估 $${item.val || 0}</span>
-                </div>
-              </div>
-            </div>`;
-        } else {
-          return `
-            <div onclick="openDetail('${item.id}')" class="bg-white rounded-2xl p-2.5 border border-gray-200/80 shadow-sm flex gap-3 items-center active:bg-gray-50">
-              <div class="rounded-xl overflow-hidden shrink-0">${imgHtml}</div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-1.5">
-                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeColor}">${item.status}</span>
-                  <span class="text-[10px] text-gray-500 truncate">${item.series}</span>
-                </div>
-                <h3 class="text-xs font-bold text-gray-900 truncate mt-1">${item.name}</h3>
-                <div class="flex gap-3 mt-1.5 text-[11px] text-gray-500">
-                  <span>入手: <b class="text-gray-800">$${item.cost || 0}</b></span>
-                  <span>估值: <b class="text-blue-600">$${item.val || 0}</b></span>
-                </div>
-              </div>
-            </div>`;
-        }
-      }).join('');
-    }
-
-    function openDetail(id) {
-      const item = items.find(i => i.id === id);
-      if (!item) return;
-      const pnl = (Number(item.val) || 0) - (Number(item.cost) || 0);
-      document.getElementById('detail-content').innerHTML = `
-        <div class="flex justify-between items-start mb-3">
-          <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">${item.category} · ${item.region}</span>
-          <button onclick="document.getElementById('detail-modal').classList.add('hidden')" class="p-1.5 bg-gray-100 rounded-full text-gray-500">✕</button>
-        </div>
-        ${item.image ? `<img src="${item.image}" class="w-full h-56 object-contain bg-gray-50 rounded-2xl mb-3 border border-gray-100" />` : ''}
-        <h2 class="text-lg font-bold text-gray-900 leading-snug">${item.name}</h2>
-        <p class="text-xs text-gray-500 mt-1">${item.series}</p>
-
-        <div class="grid grid-cols-3 gap-2 my-4 bg-gray-50 p-3 rounded-2xl text-center">
-          <div><div class="text-[10px] text-gray-500">實際入手價</div><div class="text-sm font-bold">$${item.cost || 0}</div></div>
-          <div><div class="text-[10px] text-gray-500">二手估值</div><div class="text-sm font-bold text-blue-600">$${item.val || 0}</div></div>
-          <div><div class="text-[10px] text-gray-500">帳面損益</div><div class="text-sm font-bold ${pnl >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${pnl >= 0 ? '+' : ''}$${pnl}</div></div>
-        </div>
-
-        <div class="space-y-2 text-xs text-gray-700 border-t border-gray-100 pt-3">
-          <div class="flex justify-between"><span class="text-gray-400">入手狀況</span><span class="font-semibold">${item.status || '-'}</span></div>
-          <div class="flex justify-between"><span class="text-gray-400">販售類型</span><span class="font-semibold">${item.saleType || '-'}</span></div>
-          <div class="flex justify-between"><span class="text-gray-400">盒況</span><span class="font-semibold">${item.box || '-'}</span></div>
-          <div class="flex justify-between"><span class="text-gray-400">擺放位置</span><span class="font-semibold">${item.location || '未設定'}</span></div>
-          <div class="flex justify-between"><span class="text-gray-400">發售日 / 管道</span><span class="font-semibold">${item.releaseDate || '-'} / ${item.channel || '-'}</span></div>
-          ${item.notes ? `<div class="bg-amber-50/70 p-2.5 rounded-xl text-gray-700 mt-2"><b>備註：</b>${item.notes}</div>` : ''}
-        </div>
-
-        <div class="flex gap-2 mt-5">
-          <button onclick="editItem('${item.id}')" class="flex-1 py-2.5 bg-gray-900 text-white text-xs font-bold rounded-xl">編輯資料</button>
-          <button onclick="deleteItem('${item.id}')" class="px-4 py-2.5 bg-rose-50 text-rose-600 text-xs font-bold rounded-xl">刪除</button>
-        </div>
-      `;
-      document.getElementById('detail-modal').classList.remove('hidden');
-    }
-
-    function openFormModal() {
-      document.getElementById('form-title').textContent = '新增藏品';
-      document.getElementById('item-form').reset();
-      document.getElementById('f-id').value = '';
-      tempBase64Image = '';
-      document.getElementById('f-img-preview').classList.add('hidden');
-      initChips();
-      document.getElementById('form-modal').classList.remove('hidden');
-    }
-
-    function closeFormModal() {
-      stopBarcodeScan();
-      document.getElementById('form-modal').classList.add('hidden');
-    }
-
-    function editItem(id) {
-      document.getElementById('detail-modal').classList.add('hidden');
-      const item = items.find(i => i.id === id);
-      if (!item) return;
-      document.getElementById('form-title').textContent = '編輯藏品';
-      document.getElementById('f-id').value = item.id;
-      document.getElementById('f-category').value = item.category;
-      document.getElementById('f-status').value = item.status || '已入手';
-      document.getElementById('f-name').value = item.name;
-      document.getElementById('f-series').value = item.series || '';
-      document.getElementById('f-region').value = item.region || '日版';
-      document.getElementById('f-cost').value = item.cost || '';
-      document.getElementById('f-val').value = item.val || '';
-      document.getElementById('f-box').value = item.box || '良好';
-      document.getElementById('f-saleType').value = item.saleType || '一般';
-      document.getElementById('f-location').value = item.location || '';
-      document.getElementById('f-releaseDate').value = item.releaseDate || '';
-      document.getElementById('f-channel').value = item.channel || '';
-      document.getElementById('f-notes').value = item.notes || '';
-      tempBase64Image = item.image || '';
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const maxDim = 800;
+      let w = img.width, h = img.height;
+      if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
+      else if (h > maxDim) { w *= maxDim / h; h = maxDim; }
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      tempBase64Image = canvas.toDataURL('image/jpeg', 0.8);
       const preview = document.getElementById('f-img-preview');
-      if (tempBase64Image) {
-        preview.src = tempBase64Image;
-        preview.classList.remove('hidden');
-      } else {
-        preview.classList.add('hidden');
-      }
-      document.getElementById('form-modal').classList.remove('hidden');
-    }
+      preview.src = tempBase64Image;
+      preview.classList.remove('hidden');
+      document.getElementById('image-actions').classList.remove('hidden');
+      document.getElementById('lens-tip').classList.add('hidden');
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 
-    function handleImageUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          const maxDim = 600;
-          let w = img.width, h = img.height;
-          if (w > h && w > maxDim) { h *= maxDim / w; w = maxDim; }
-          else if (h > maxDim) { w *= maxDim / h; h = maxDim; }
-          canvas.width = w; canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          tempBase64Image = canvas.toDataURL('image/jpeg', 0.75);
-          const preview = document.getElementById('f-img-preview');
-          preview.src = tempBase64Image;
-          preview.classList.remove('hidden');
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
+// ========== 新增功能：Google Lens + 剪貼簿 ==========
+async function searchWithGoogleLens() {
+  if (!tempBase64Image) {
+    alert('請先選擇或拍攝相片');
+    return;
+  }
 
-    function saveItem(e, keepOpen = false) {
-      e.preventDefault();
+  // 嘗試把圖片複製到剪貼簿（方便喺 Lens 直接貼上）
+  let copied = false;
+  try {
+    const res = await fetch(tempBase64Image);
+    const blob = await res.blob();
+    await navigator.clipboard.write([
+      new ClipboardItem({ [blob.type]: blob })
+    ]);
+    copied = true;
+  } catch (err) {
+    console.log('無法自動複製圖片到剪貼簿:', err);
+  }
+
+  // 開啟 Google Lens
+  window.open('https://lens.google.com/', '_blank');
+
+  // 顯示提示
+  const tip = document.getElementById('lens-tip');
+  tip.classList.remove('hidden');
+  if (copied) {
+    tip.textContent = '已開啟 Google Lens，並成功把圖片複製到剪貼簿。請喺 Lens 頁面直接貼上（手機長按空白處 → 貼上）。';
+  } else {
+    tip.textContent = '已開啟 Google Lens。請手動上載或拍攝同一張相進行搜尋。';
+  }
+}
+
+async function pasteNameFromClipboard() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text && text.trim()) {
+      document.getElementById('f-name').value = text.trim();
+      // 輕微震動回饋（支援嘅裝置）
+      if (navigator.vibrate) navigator.vibrate(30);
+    } else {
+      alert('剪貼簿目前沒有文字內容');
+    }
+  } catch (err) {
+    alert('無法讀取剪貼簿。\n請確認已授權剪貼簿權限，或手動貼上。');
+  }
+}
+
+function saveItem(e, keepOpen = false) {
+  e.preventDefault();
+  stopBarcodeScan();
+  const id = document.getElementById('f-id').value;
+  const data = {
+    id: id || Date.now().toString(),
+    category: document.getElementById('f-category').value,
+    status: document.getElementById('f-status').value,
+    name: document.getElementById('f-name').value,
+    series: document.getElementById('f-series').value,
+    region: document.getElementById('f-region').value,
+    cost: Number(document.getElementById('f-cost').value) || 0,
+    val: Number(document.getElementById('f-val').value) || 0,
+    box: document.getElementById('f-box').value,
+    saleType: document.getElementById('f-saleType').value,
+    location: document.getElementById('f-location').value,
+    releaseDate: document.getElementById('f-releaseDate').value,
+    channel: document.getElementById('f-channel').value,
+    notes: document.getElementById('f-notes').value,
+    image: tempBase64Image
+  };
+  if (id) {
+    const idx = items.findIndex(i => i.id === id);
+    if (idx > -1) items[idx] = data;
+  } else {
+    items.unshift(data);
+  }
+  saveToStorage();
+  renderItems();
+
+  if (keepOpen) {
+    document.getElementById('f-id').value = '';
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-cost').value = '';
+    document.getElementById('f-val').value = '';
+    document.getElementById('f-notes').value = '';
+    tempBase64Image = '';
+    document.getElementById('f-img-preview').classList.add('hidden');
+    document.getElementById('image-actions').classList.add('hidden');
+    document.getElementById('lens-tip').classList.add('hidden');
+    document.getElementById('f-name').focus();
+  } else {
+    closeFormModal();
+  }
+}
+
+function deleteItem(id) {
+  if (!confirm('確定要刪除呢件藏品記錄？')) return;
+  items = items.filter(i => i.id !== id);
+  saveToStorage();
+  document.getElementById('detail-modal').classList.add('hidden');
+  renderItems();
+}
+
+function renderLocations() {
+  const container = document.getElementById('locations-container');
+  container.innerHTML = locations.map((loc, idx) => {
+    const pct = Math.min(100, Math.round((loc.current / loc.max) * 100));
+    return `
+      <div class="bg-white p-3.5 rounded-2xl border border-gray-200/85 shadow-sm">
+        <div class="flex justify-between items-center">
+          <div>
+            <span class="text-xs font-bold bg-gray-900 text-white px-2 py-0.5 rounded">${loc.code}</span>
+            <span class="text-sm font-bold text-gray-800 ml-1.5">${loc.desc}</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="adjustLoc(${idx}, -1)" class="w-7 h-7 rounded-lg bg-gray-100 font-bold text-gray-600">-</button>
+            <span class="text-xs font-bold w-12 text-center">${loc.current}/${loc.max}</span>
+            <button onclick="adjustLoc(${idx}, 1)" class="w-7 h-7 rounded-lg bg-gray-100 font-bold text-gray-600">+</button>
+          </div>
+        </div>
+        <div class="w-full bg-gray-100 h-2 rounded-full mt-2.5 overflow-hidden">
+          <div class="bg-blue-600 h-full rounded-full" style="width: ${pct}%"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function adjustLoc(idx, delta) {
+  locations[idx].current = Math.max(0, locations[idx].current + delta);
+  saveToStorage();
+  renderLocations();
+}
+
+function openLocationModal() {
+  const code = prompt('輸入位置編號（例如 E-1）：');
+  if (!code) return;
+  const desc = prompt('輸入位置描述：') || '';
+  const max = Number(prompt('輸入最大容量：')) || 10;
+  locations.push({ code, desc, type: '自訂', current: 0, max, note: '' });
+  saveToStorage();
+  renderLocations();
+}
+
+function switchTab(tab) {
+  document.getElementById('view-collection').classList.toggle('hidden', tab !== 'collection');
+  document.getElementById('view-locations').classList.toggle('hidden', tab !== 'locations');
+  document.getElementById('tab-collection').className = 'flex flex-col items-center ' + (tab === 'collection' ? 'text-blue-600' : 'text-gray-400');
+  document.getElementById('tab-locations').className = 'flex flex-col items-center ' + (tab === 'locations' ? 'text-blue-600' : 'text-gray-400');
+  if (tab === 'locations') renderLocations();
+}
+
+function openBackupModal() {
+  document.getElementById('backup-modal').classList.remove('hidden');
+}
+
+function exportJSON() {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({ items, locations })], { type: 'application/json' }));
+  a.download = '藏品完整備份_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.items) items = data.items;
+      if (data.locations) locations = data.locations;
+      saveToStorage();
+      renderItems();
+      alert('備份還原成功！');
+      document.getElementById('backup-modal').classList.add('hidden');
+    } catch {
+      alert('檔案格式不正確');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function startBarcodeScan() {
+  const container = document.getElementById('scanner-container');
+  container.classList.remove('hidden');
+  if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 100 } },
+    (decodedText) => {
       stopBarcodeScan();
-      const id = document.getElementById('f-id').value;
-      const data = {
-        id: id || Date.now().toString(),
-        category: document.getElementById('f-category').value,
-        status: document.getElementById('f-status').value,
-        name: document.getElementById('f-name').value,
-        series: document.getElementById('f-series').value,
-        region: document.getElementById('f-region').value,
-        cost: Number(document.getElementById('f-cost').value) || 0,
-        val: Number(document.getElementById('f-val').value) || 0,
-        box: document.getElementById('f-box').value,
-        saleType: document.getElementById('f-saleType').value,
-        location: document.getElementById('f-location').value,
-        releaseDate: document.getElementById('f-releaseDate').value,
-        channel: document.getElementById('f-channel').value,
-        notes: document.getElementById('f-notes').value,
-        image: tempBase64Image
-      };
-      if (id) {
-        const idx = items.findIndex(i => i.id === id);
-        if (idx > -1) items[idx] = data;
-      } else {
-        items.unshift(data);
+      document.getElementById('f-name').value = decodedText;
+      const notes = document.getElementById('f-notes');
+      if (!notes.value.includes(decodedText)) {
+        notes.value = 'JAN: ' + decodedText + (notes.value ? ' | ' + notes.value : '');
       }
-      saveToStorage();
-      renderItems();
+    },
+    () => {}
+  ).catch(() => {
+    alert("無法開啟相機，請檢查 Safari 相機權限。");
+    container.classList.add('hidden');
+  });
+}
 
-      if (keepOpen) {
-        document.getElementById('f-id').value = '';
-        document.getElementById('f-name').value = '';
-        document.getElementById('f-cost').value = '';
-        document.getElementById('f-val').value = '';
-        document.getElementById('f-notes').value = '';
-        tempBase64Image = '';
-        document.getElementById('f-img-preview').classList.add('hidden');
-        document.getElementById('f-name').focus();
-      } else {
-        closeFormModal();
-      }
-    }
+function stopBarcodeScan() {
+  if (html5QrCode) {
+    html5QrCode.stop().then(() => {
+      document.getElementById('scanner-container').classList.add('hidden');
+    }).catch(() => {
+      document.getElementById('scanner-container').classList.add('hidden');
+    });
+  } else {
+    document.getElementById('scanner-container').classList.add('hidden');
+  }
+}
 
-    function deleteItem(id) {
-      if (!confirm('確定要刪除呢件藏品記錄？')) return;
-      items = items.filter(i => i.id !== id);
-      saveToStorage();
-      document.getElementById('detail-modal').classList.add('hidden');
-      renderItems();
-    }
-
-    function renderLocations() {
-      const container = document.getElementById('locations-container');
-      container.innerHTML = locations.map((loc, idx) => {
-        const pct = Math.min(100, Math.round((loc.current / loc.max) * 100));
-        return `
-          <div class="bg-white p-3.5 rounded-2xl border border-gray-200/85 shadow-sm">
-            <div class="flex justify-between items-center">
-              <div>
-                <span class="text-xs font-bold bg-gray-900 text-white px-2 py-0.5 rounded">${loc.code}</span>
-                <span class="text-sm font-bold text-gray-800 ml-1.5">${loc.desc}</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <button onclick="adjustLoc(${idx}, -1)" class="w-7 h-7 rounded-lg bg-gray-100 font-bold text-gray-600">-</button>
-                <span class="text-xs font-bold w-12 text-center">${loc.current}/${loc.max}</span>
-                <button onclick="adjustLoc(${idx}, 1)" class="w-7 h-7 rounded-lg bg-gray-100 font-bold text-gray-600">+</button>
-              </div>
-            </div>
-            <div class="w-full bg-gray-100 h-2 rounded-full mt-2.5 overflow-hidden">
-              <div class="bg-blue-600 h-full rounded-full" style="width: ${pct}%"></div>
-            </div>
-          </div>`;
-      }).join('');
-    }
-
-    function adjustLoc(idx, delta) {
-      locations[idx].current = Math.max(0, locations[idx].current + delta);
-      saveToStorage();
-      renderLocations();
-    }
-
-    function openLocationModal() {
-      const code = prompt('輸入位置編號（例如 E-1）：');
-      if (!code) return;
-      const desc = prompt('輸入位置描述：') || '';
-      const max = Number(prompt('輸入最大容量：')) || 10;
-      locations.push({ code, desc, type: '自訂', current: 0, max, note: '' });
-      saveToStorage();
-      renderLocations();
-    }
-
-    function switchTab(tab) {
-      document.getElementById('view-collection').classList.toggle('hidden', tab !== 'collection');
-      document.getElementById('view-locations').classList.toggle('hidden', tab !== 'locations');
-      document.getElementById('tab-collection').className = `flex flex-col items-center ${tab === 'collection' ? 'text-blue-600' : 'text-gray-400'}`;
-      document.getElementById('tab-locations').className = `flex flex-col items-center ${tab === 'locations' ? 'text-blue-600' : 'text-gray-400'}`;
-      if (tab === 'locations') renderLocations();
-    }
-
-    function openBackupModal() {
-      document.getElementById('backup-modal').classList.remove('hidden');
-    }
-
-    function exportJSON() {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([JSON.stringify({ items, locations })], { type: 'application/json' }));
-      a.download = `藏品完整備份_${new Date().toISOString().slice(0,10)}.json`;
-      a.click();
-    }
-
-    function importJSON(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        try {
-          const data = JSON.parse(ev.target.result);
-          if (data.items) items = data.items;
-          if (data.locations) locations = data.locations;
-          saveToStorage();
-          renderItems();
-          alert('備份還原成功！');
-          document.getElementById('backup-modal').classList.add('hidden');
-        } catch { alert('檔案格式不正確'); }
-      };
-      reader.readAsText(file);
-    }
-
-    function startBarcodeScan() {
-      const container = document.getElementById('scanner-container');
-      container.classList.remove('hidden');
-      if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-      
-      html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 100 } },
-        (decodedText) => {
-          stopBarcodeScan();
-          document.getElementById('f-name').value = decodedText;
-          const notes = document.getElementById('f-notes');
-          if (!notes.value.includes(decodedText)) {
-            notes.value = `JAN: ${decodedText} ` + notes.value;
-          }
-        },
-        () => {}
-      ).catch(() => {
-        alert("無法開啟相機，請檢查 Safari 相機權限。");
-        container.classList.add('hidden');
-      });
-    }
-
-    function stopBarcodeScan() {
-      if (html5QrCode) {
-        html5QrCode.stop().then(() => {
-          document.getElementById('scanner-container').classList.add('hidden');
-        }).catch(() => {
-          document.getElementById('scanner-container').classList.add('hidden');
-        });
-      } else {
-        document.getElementById('scanner-container').classList.add('hidden');
-      }
-    }
-
-    renderItems();
-  </script>
+// 初始化
+renderItems();
+</script>
 </body>
 </html>
